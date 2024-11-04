@@ -7,9 +7,9 @@ import Button from "@mui/material/Button";
 export const Home = () => {
     return (
         <Box sx={{ display: "flex" }}>
-            <HorizontalNavbar />
+            <HorizontalNavbar title="Home"/>
             <VerticalNavbar />
-            <Box component="main" display="flex" flexDirection="column" alignItems="center" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+            <Box component="main" display="flex" flexDirection="column" alignItems="center" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                 <Typography variant="h3">Automatic Case Investigator</Typography>
                 <Button variant="outlined"><CoffeeIcon sx={{ mr: 1 }} />Buy me a coffee</Button>
             </Box>

@@ -11,10 +11,9 @@ export const Organizations = () => {
     })
     return (
         <Box sx={{ display: "flex" }}>
-            <HorizontalNavbar />
+            <HorizontalNavbar title="Organizations"/>
             <VerticalNavbar />
-            <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-                <Typography variant="h4">Organizations</Typography>
+            <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                 {
                     targetSOAR ? (
                         <Typography variant="body1">Development in progress</Typography>

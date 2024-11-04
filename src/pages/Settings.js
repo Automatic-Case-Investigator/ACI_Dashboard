@@ -7,10 +7,9 @@ import { SOARSettings } from "../components/settings/SOARSettings/SOARSettings";
 export const Settings = () => {
     return (
         <Box sx={{ display: "flex" }}>
-            <HorizontalNavbar />
+            <HorizontalNavbar title="Settings"/>
             <VerticalNavbar />
-            <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-                <Typography variant="h4">Settings</Typography>
+            <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                 <SOARSettings />
                 <Typography variant="h6">SIEM</Typography>
             </Box>

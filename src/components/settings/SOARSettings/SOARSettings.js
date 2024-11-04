@@ -12,6 +12,7 @@ import { BiTargetLock } from "react-icons/bi";
 import { useEffect, useState } from "react";
 import { EditSOARInfoDialog } from "./EditSOARInfoDialog";
 import { SOAR_CHOICES } from "../../../constants/platform-choices";
+import { NewSOARInfoDialog } from "./NewSOARInfoDialog";
 
 export const SOARSettings = () => {
     const [soarsData, setSoarsData] = useState([]);
@@ -19,6 +20,7 @@ export const SOARSettings = () => {
     const [selectionModel, setSelectionModel] = useState([]);
     const [soarsLoading, setSoarsLoading] = useState(true);
 
+    const [newDialogOpen, setNewDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
 
     const handleEditDialogOpen = (params) => {
@@ -70,9 +72,10 @@ export const SOARSettings = () => {
 
     const handleSoarDelete = async (params) => {
         const updatedData = Object.assign([], soarsData);
-        updatedData.splice()
+        let isTarget = false;
         for (let index = 0; index < updatedData.length; index++) {
             if (updatedData[index].id === params.row.id) {
+                isTarget = updatedData[index].isTarget
                 const formData = new FormData();
                 formData.append("soar_id", params.row.id);
 
@@ -85,31 +88,82 @@ export const SOARSettings = () => {
                 break;
             }
         }
-        localStorage.removeItem("targetSOAR");
+        if (isTarget) {
+            localStorage.removeItem("targetSOAR");
+        }
         setSoarsData(updatedData);
     }
 
-    const handleSoarEdit = async (updatedInfo) => {
+    const handleSoarMassDelete = async () => {
         const updatedData = Object.assign([], soarsData);
+        const currentSelectionModel = Object.assign([], selectionModel);
+        let deletedTarget = false;
         for (let index = 0; index < updatedData.length; index++) {
-            if (updatedData[index].id === updatedInfo.id) {
-                const requestBody = new FormData();
-                const urlObj = new URL(updatedInfo.url);
-                requestBody.append("soar_id", updatedInfo.id);
-                requestBody.append("name", updatedInfo.name);
-                requestBody.append("type", Object.keys(SOAR_CHOICES).find(key => SOAR_CHOICES[key] === updatedInfo.type));
-                requestBody.append("protocol", urlObj.protocol);
-                requestBody.append("hostname", urlObj.host);
-                requestBody.append("base_dir", urlObj.pathname);
-                requestBody.append("api_key", updatedInfo.apiKey);
+            let deleted = false;
+            for (let selectionModelIndex = 0; selectionModelIndex < currentSelectionModel.length; selectionModelIndex++) {
+                if (updatedData[index].id === currentSelectionModel[selectionModelIndex]) {
+                    if (updatedData[index].isTarget) {
+                        deletedTarget = true;
+                    }
 
-                await fetch(process.env.REACT_APP_BACKEND_URL + "soar/set_soar_info/", {
-                    method: "POST",
-                    body: requestBody
-                });
-                break;
+                    const formData = new FormData();
+                    formData.append("soar_id", currentSelectionModel[selectionModelIndex]);
+
+                    await fetch(
+                        process.env.REACT_APP_BACKEND_URL + "soar/delete_soar_info/",
+                        { method: "POST", body: formData }
+                    );
+
+                    updatedData.splice(index, 1);
+                    currentSelectionModel.splice(selectionModelIndex, 1);
+                    deleted = true;
+                    break;
+                }
+            }
+            if (deleted) {
+                index--;
             }
         }
+        if (deletedTarget) {
+            localStorage.removeItem("targetSOAR");
+        }
+        setSoarsData(updatedData);
+    }
+
+    const handleSoarCreate = async (soarInfo) => {
+        const requestBody = new FormData();
+        const urlObj = new URL(soarInfo.url);
+        requestBody.append("name", soarInfo.name);
+        requestBody.append("soar_type", Object.keys(SOAR_CHOICES).find(key => SOAR_CHOICES[key] === soarInfo.type));
+        requestBody.append("protocol", urlObj.protocol);
+        requestBody.append("hostname", urlObj.host);
+        requestBody.append("base_dir", urlObj.pathname);
+        requestBody.append("api_key", soarInfo.apiKey);
+
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/add_soar_info/", {
+            method: "POST",
+            body: requestBody
+        });
+        console.log(Object.keys(SOAR_CHOICES).find(key => SOAR_CHOICES[key] === soarInfo.type))
+        console.log(await response.json())
+        updateSoarsData();
+    }
+
+    const handleSoarEdit = async (updatedInfo) => {
+        const requestBody = new FormData();
+        const urlObj = new URL(updatedInfo.url);
+        requestBody.append("soar_id", updatedInfo.id);
+        requestBody.append("name", updatedInfo.name);
+        requestBody.append("soar_type", Object.keys(SOAR_CHOICES).find(key => SOAR_CHOICES[key] === updatedInfo.type));
+        requestBody.append("protocol", urlObj.protocol);
+        requestBody.append("hostname", urlObj.host);
+        requestBody.append("base_dir", urlObj.pathname);
+        requestBody.append("api_key", updatedInfo.apiKey);
+
+        await fetch(process.env.REACT_APP_BACKEND_URL + "soar/set_soar_info/", {
+            method: "POST",
+            body: requestBody
+        });
         updateSoarsData();
     }
 
@@ -175,7 +229,7 @@ export const SOARSettings = () => {
             }
             for (let index = 0; index < soarsData.length; index++) {
                 if (soarsData[index].id === targetSOAR.id) {
-                    targetSOAR = {...soarsData[index]}
+                    targetSOAR = { ...soarsData[index] }
                     localStorage.setItem("targetSOAR", JSON.stringify(targetSOAR));
                     break;
                 }
@@ -183,11 +237,14 @@ export const SOARSettings = () => {
         }
     }, [soarsData]);
 
-
     return (
         <>
+            <Dialog open={newDialogOpen} onClose={() => { setNewDialogOpen(false) }} fullWidth>
+                <NewSOARInfoDialog selectedSoarData={selectedSoarData} onClose={() => { setNewDialogOpen(false) }} onCreate={handleSoarCreate} />
+            </Dialog>
+
             <Dialog open={editDialogOpen} onClose={handleEditDialogClose} fullWidth>
-                <EditSOARInfoDialog selectedSoarData={selectedSoarData} onClose={handleEditDialogClose} onSave={handleSoarEdit}/>
+                <EditSOARInfoDialog selectedSoarData={selectedSoarData} onClose={handleEditDialogClose} onSave={handleSoarEdit} />
             </Dialog>
 
             {
@@ -204,7 +261,7 @@ export const SOARSettings = () => {
                                 {
                                     selectionModel.length > 0 && (
                                         <Tooltip title="Delete Selection">
-                                            <IconButton>
+                                            <IconButton onClick={handleSoarMassDelete}>
                                                 <DeleteIcon style={{ color: red[500] }} />
                                             </IconButton>
                                         </Tooltip>
@@ -212,7 +269,7 @@ export const SOARSettings = () => {
                                 }
 
                                 <Tooltip title="Add New">
-                                    <IconButton>
+                                    <IconButton onClick={() => { setNewDialogOpen(true) }}>
                                         <AddIcon />
                                     </IconButton>
                                 </Tooltip>

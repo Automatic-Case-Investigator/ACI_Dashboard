@@ -5,10 +5,9 @@ import { Box, Typography } from "@mui/material";
 export const Jobs = () => {
     return (
         <Box sx={{ display: "flex" }}>
-            <HorizontalNavbar />
+            <HorizontalNavbar title="Jobs"/>
             <VerticalNavbar />
-            <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-                <Typography variant="h4">Jobs</Typography>
+            <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                 <Typography variant="body1">Development in progress</Typography>
             </Box>
         </Box>

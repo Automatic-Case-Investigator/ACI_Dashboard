@@ -9,13 +9,13 @@ import { useNavigate } from 'react-router-dom';
 
 const drawerWidth = 80;
 
-export const HorizontalNavbar = () => {
+export const HorizontalNavbar = ({title}) => {
     const navigate = useNavigate();
     return (
-        <AppBar position="fixed" sx={{ display: "block", width: `calc(100% - ${drawerWidth}px)`, marginLeft: drawerWidth }}>
+        <AppBar position="fixed" sx={{ display: "flex", justifyContent: "center", width: `calc(100% - ${drawerWidth}px)`, height: 50, marginLeft: drawerWidth }}>
             <Toolbar>
                 <Typography variant="body1" component="div" sx={{ flexGrow: 1 }}>
-                    Org/Case/
+                    {title}
                 </Typography>
                 <Tooltip title="Settings">
                     <IconButton edge="start" color="primary" sx={{ mr: 2 }} onClick={() => {navigate("/settings")}}>
