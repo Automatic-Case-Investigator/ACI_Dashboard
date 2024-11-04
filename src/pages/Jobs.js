@@ -1,10 +1,10 @@
-import { Box, Typography } from '@mui/material';
-import HorizontalNavbar from '../components/navbar/HorizontalNavbar';
-import { VerticalNavbar } from '../components/navbar/VerticalNavbar';
+import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
+import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
+import { Box, Typography } from "@mui/material";
 
 export const Jobs = () => {
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: "flex" }}>
             <HorizontalNavbar />
             <VerticalNavbar />
             <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>

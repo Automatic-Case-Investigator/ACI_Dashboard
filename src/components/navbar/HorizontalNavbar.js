@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 const drawerWidth = 80;
 
-export default function HorizontalNavbar() {
+export const HorizontalNavbar = () => {
     const navigate = useNavigate();
     return (
         <AppBar position="fixed" sx={{ display: "block", width: `calc(100% - ${drawerWidth}px)`, marginLeft: drawerWidth }}>

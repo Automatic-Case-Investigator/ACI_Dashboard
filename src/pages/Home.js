@@ -1,12 +1,12 @@
-import { Box, Typography } from '@mui/material';
-import Button from '@mui/material/Button';
-import HorizontalNavbar from '../components/navbar/HorizontalNavbar';
-import { VerticalNavbar } from '../components/navbar/VerticalNavbar';
-import CoffeeIcon from '@mui/icons-material/Coffee';
+import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
+import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
+import CoffeeIcon from "@mui/icons-material/Coffee";
+import { Box, Typography } from "@mui/material";
+import Button from "@mui/material/Button";
 
 export const Home = () => {
     return (
-        <Box sx={{ display: 'flex' }}>
+        <Box sx={{ display: "flex" }}>
             <HorizontalNavbar />
             <VerticalNavbar />
             <Box component="main" display="flex" flexDirection="column" alignItems="center" sx={{ flexGrow: 1, p: 3, mt: 8 }}>

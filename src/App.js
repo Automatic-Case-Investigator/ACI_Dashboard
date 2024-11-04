@@ -14,6 +14,7 @@ import { Jobs } from "./pages/Jobs";
 const darkTheme = createTheme({
   type: "dark",
   palette: {
+    mode: "dark",
     background: {
       default: "#212940",
       paper: '#21335F'
