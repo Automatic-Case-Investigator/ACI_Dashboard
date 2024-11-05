@@ -35,6 +35,7 @@ export const SOARSettings = () => {
 
     // fetch the soar data from the backend
     const updateSoarsData = async () => {
+        setSoarsLoading(true);
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/get_soars_info/");
         const rawData = (await response.json())["message"];
         const output = [];
@@ -70,6 +71,7 @@ export const SOARSettings = () => {
         setSoarsData(updatedData);
     }
 
+    // the handler of individual delete buttons
     const handleSoarDelete = async (params) => {
         const updatedData = Object.assign([], soarsData);
         let isTarget = false;
@@ -94,6 +96,7 @@ export const SOARSettings = () => {
         setSoarsData(updatedData);
     }
 
+    // the handler of the mass delete button
     const handleSoarMassDelete = async () => {
         const updatedData = Object.assign([], soarsData);
         const currentSelectionModel = Object.assign([], selectionModel);
@@ -250,13 +253,13 @@ export const SOARSettings = () => {
             {
                 soarsLoading ? (
                     <>
-                        <Typography variant="h6" width="50vw" sx={{ display: "inline-block" }}>SOAR</Typography>
+                        <Typography variant="h6" width="50vw" sx={{ display: "inline-block" }}>SOAR Information</Typography>
                         <PuffLoader color="#00ffea" />
                     </>
                 ) : (
                     <>
                         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                            <Typography variant="h6" width="50vw" sx={{ display: "inline-block" }}>SOAR</Typography>
+                            <Typography variant="h6" width="50vw" sx={{ display: "inline-block" }}>SOAR Information</Typography>
                             <Box>
                                 {
                                     selectionModel.length > 0 && (

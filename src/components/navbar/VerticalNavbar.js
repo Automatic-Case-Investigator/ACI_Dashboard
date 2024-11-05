@@ -42,8 +42,9 @@ export const VerticalNavbar = () => {
                     alignItems="center"
                     justifyContent="center">
                     <Tooltip title="Home" placement="right">
-                        <Button sx={{ height: 70 }} fullWidth onClick={() => {navigate("/")}}>
-                            <HomeIcon color="primary" fontSize="large" />
+                        <Button sx={{ height: 50 }} fullWidth onClick={() => {navigate("/")}}>
+                            {/* <HomeIcon color="primary" fontSize="large" /> */}
+                            <img src="/assets/icons/ACI_small.svg" width={30}></img>
                         </Button>
                     </Tooltip>
                     <Tooltip title="Organizations" placement="right">
