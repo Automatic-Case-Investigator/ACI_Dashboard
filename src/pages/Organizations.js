@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { Box, Typography } from "@mui/material";
+import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import { Helmet } from "react-helmet";
+import PuffLoader from "react-spinners/PuffLoader"
+import { useNavigate } from "react-router-dom";
+
 
 export const Organizations = () => {
     const [errorMessage, setErrorMessage] = useState("");
+    const [organizations, setOrganizations] = useState([]);
     const [targetSOAR, setTargetSOAR] = useState(() => {
         const saved = localStorage.getItem("targetSOAR");
         const initialValue = JSON.parse(saved);
@@ -15,12 +20,16 @@ export const Organizations = () => {
     const getOrganizations = async () => {
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_organizations/?soar_id=${targetSOAR.id}`);
         const rawData = await response.json();
+
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])
         } else {
             setErrorMessage("")
+            setOrganizations(rawData["organizations"])
         }
     }
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!targetSOAR) {
@@ -43,10 +52,34 @@ export const Organizations = () => {
                             errorMessage.length > 0 ? (
                                 <Typography variant="body1">{errorMessage}</Typography>
                             ) : (
-                                <Typography variant="body1">Development in progress</Typography>
+                                <>
+                                    <Typography variant="body1">Organizations for SOAR "{targetSOAR.name}":</Typography>
+
+                                    {
+                                        organizations.length === 0 ? (
+                                            <PuffLoader color="#00ffea" />
+                                        ) : (
+                                            <List>
+                                                {
+                                                    organizations.map((org, index) => (
+                                                        // TODO: change the navigation
+                                                        <ListItem key={index} sx={{ display: "block" }} onClick={() => {navigate("/")}}>
+                                                            <ListItemIcon sx={{ display: "inline-block", verticalAlign: "middle" }}>
+                                                                <CorporateFareIcon />
+                                                            </ListItemIcon>
+                                                            <ListItemText sx={{ display: "inline-block", verticalAlign: "middle" }} primary={org.name} secondary={`ID: ${org.id}`} />
+                                                            <ListItemText sx={{ display: "inline-block", verticalAlign: "middle", marginLeft: 10 }} secondary={`Description: ${org.description}`} />
+                                                        </ListItem>
+                                                    ))
+                                                }
+                                            </List>
+                                        )
+                                    }
+
+                                </>
                             )
                         ) : (
-                            <Typography variant="body1">You haven"t select your target SOAR platform yet. Please select your target SOAR platform in settings.</Typography>
+                            <Typography variant="body1">You haven't select your target SOAR platform yet. Please select your target SOAR platform in settings.</Typography>
                         )
                     }
 

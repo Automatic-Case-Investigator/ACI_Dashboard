@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { EditSOARInfoDialog } from "./EditSOARInfoDialog";
 import { SOAR_CHOICES } from "../../../constants/platform-choices";
 import { NewSOARInfoDialog } from "./NewSOARInfoDialog";
+import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
 
 export const SOARSettings = () => {
     const [soarsData, setSoarsData] = useState([]);
@@ -22,6 +23,18 @@ export const SOARSettings = () => {
 
     const [newDialogOpen, setNewDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+    const [upcomingAction, setUpcomingAction] = useState({});
+
+    const scheduleUpcomingAction = (func, ...args) => {
+        setUpcomingAction({ func, args });
+    };
+    const executeUpcomingAction = async () => {
+        if (upcomingAction) {
+            const { func, args } = upcomingAction;
+            await func(...args);
+        }
+    };
 
     const handleEditDialogOpen = (params) => {
         setSelectedSoarData(params.row)
@@ -143,12 +156,10 @@ export const SOARSettings = () => {
         requestBody.append("base_dir", urlObj.pathname);
         requestBody.append("api_key", soarInfo.apiKey);
 
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/add_soar_info/", {
+        await fetch(process.env.REACT_APP_BACKEND_URL + "soar/add_soar_info/", {
             method: "POST",
             body: requestBody
         });
-        console.log(Object.keys(SOAR_CHOICES).find(key => SOAR_CHOICES[key] === soarInfo.type))
-        console.log(await response.json())
         updateSoarsData();
     }
 
@@ -204,7 +215,10 @@ export const SOARSettings = () => {
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Delete">
-                        <IconButton onClick={() => { handleSoarDelete(params) }}>
+                        <IconButton onClick={() => {
+                            scheduleUpcomingAction(handleSoarDelete, params)
+                            setConfirmDialogOpen(true)
+                        }}>
                             <DeleteIcon />
                         </IconButton>
                     </Tooltip>
@@ -246,6 +260,10 @@ export const SOARSettings = () => {
                 <NewSOARInfoDialog selectedSoarData={selectedSoarData} onClose={() => { setNewDialogOpen(false) }} onCreate={handleSoarCreate} />
             </Dialog>
 
+            <Dialog open={confirmDialogOpen} onClose={() => { setConfirmDialogOpen(false) }} fullWidth>
+                <ConfirmationDialog selectedSoarData={selectedSoarData} onCancel={() => { setConfirmDialogOpen(false) }} onContinue={() => { executeUpcomingAction(); setConfirmDialogOpen(false) }} />
+            </Dialog>
+
             <Dialog open={editDialogOpen} onClose={handleEditDialogClose} fullWidth>
                 <EditSOARInfoDialog selectedSoarData={selectedSoarData} onClose={handleEditDialogClose} onSave={handleSoarEdit} />
             </Dialog>
@@ -264,7 +282,10 @@ export const SOARSettings = () => {
                                 {
                                     selectionModel.length > 0 && (
                                         <Tooltip title="Delete Selection">
-                                            <IconButton onClick={handleSoarMassDelete}>
+                                            <IconButton onClick={() => {
+                                                scheduleUpcomingAction(handleSoarMassDelete)
+                                                setConfirmDialogOpen(true)
+                                            }}>
                                                 <DeleteIcon style={{ color: red[500] }} />
                                             </IconButton>
                                         </Tooltip>
