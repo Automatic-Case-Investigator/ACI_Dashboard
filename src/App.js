@@ -10,6 +10,8 @@ import { Settings } from "./pages/Settings";
 import { Organizations } from "./pages/Organizations";
 import { AISystems } from "./pages/AISystems";
 import { Jobs } from "./pages/Jobs";
+import { Cases } from "./pages/Cases";
+import { CasePage } from "./pages/CasePage";
 
 
 const darkTheme = createTheme({
@@ -33,16 +35,6 @@ const darkTheme = createTheme({
         },
     },
     components: {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    color: '#FFFFFF',
-                    '&:hover': {
-                        backgroundColor: '#FFFFFF22'
-                    },
-                },
-            },
-        },
         MuiIconButton: {
             styleOverrides: {
                 root: {
@@ -79,6 +71,13 @@ const darkTheme = createTheme({
                 },
             },
         },
+        MuiAccordionSummary: {
+            styleOverrides: {
+                root: {
+                    backgroundColor: "#384a75"
+                },
+            },
+        },
     }
 });
 
@@ -92,6 +91,8 @@ function App() {
                     <Route path="/" element={<Home />}></Route>
                     <Route path="/settings" element={<Settings />}></Route>
                     <Route path="/organizations" element={<Organizations />}></Route>
+                    <Route path="/organizations/:orgId/cases" element={<Cases />} />
+                    <Route path="/organizations/:orgId/cases/:caseId" element={<CasePage />} />
                     <Route path="/ai-systems" element={<AISystems />}></Route>
                     <Route path="/jobs" element={<Jobs />}></Route>
                     <Route path="*" element={<Navigate to="/" />}></Route>

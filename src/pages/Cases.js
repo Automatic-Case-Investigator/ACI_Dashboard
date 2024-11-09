@@ -1,50 +1,51 @@
-import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
-import CorporateFareIcon from '@mui/icons-material/CorporateFare';
-import { Helmet } from "react-helmet";
+import { useNavigate, useParams } from "react-router-dom";
+import WorkIcon from '@mui/icons-material/Work';
 import PuffLoader from "react-spinners/PuffLoader"
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
+export const Cases = () => {
+    const { orgId } = useParams();
+    const navigate = useNavigate();
 
-export const Organizations = () => {
     const [errorMessage, setErrorMessage] = useState("");
-    const [organizations, setOrganizations] = useState([]);
+    const [cases, setCases] = useState([]);
     const [targetSOAR, setTargetSOAR] = useState(() => {
         const saved = localStorage.getItem("targetSOAR");
         const initialValue = JSON.parse(saved);
         return initialValue || null;
     });
 
-    const getOrganizations = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_organizations/?soar_id=${targetSOAR.id}`);
+    const getCases = async () => {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_cases/?soar_id=${targetSOAR.id}&org_id=${orgId}`);
         const rawData = await response.json();
 
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])
         } else {
             setErrorMessage("")
-            setOrganizations(rawData["organizations"])
+            setCases(rawData["cases"])
         }
     }
-
-    const navigate = useNavigate();
 
     useEffect(() => {
         if (!targetSOAR) {
             return;
         }
 
-        getOrganizations();
+        getCases();
     }, [targetSOAR]);
+
     return (
         <>
             <Helmet>
-                <title>Organizations</title>
+                <title>Cases</title>
             </Helmet>
             <Box sx={{ display: "flex" }}>
-                <HorizontalNavbar title="Organizations" />
+                <HorizontalNavbar title={`Organizations/${orgId}/cases`} />
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                     {
@@ -53,18 +54,16 @@ export const Organizations = () => {
                                 <Typography variant="body1">{errorMessage}</Typography>
                             ) : (
                                 <>
-                                    <Typography variant="body1">Organizations for SOAR "{targetSOAR.name}":</Typography>
-
                                     {
-                                        organizations.length === 0 ? (
+                                        cases.length === 0 ? (
                                             <PuffLoader color="#00ffea" />
                                         ) : (
                                             <List>
                                                 {
-                                                    organizations.map((org, index) => (
-                                                        <ListItem key={index} sx={{ display: "block" }} onClick={() => { navigate(`/organizations/${org.id}/cases`) }}>
+                                                    cases.map((case_data, index) => (
+                                                        <ListItem key={index} sx={{ display: "block" }} onClick={() => { navigate(`/organizations/${orgId}/cases/${case_data._id}`) }}>
                                                             <ListItemIcon sx={{ display: "inline-block", verticalAlign: "middle" }}>
-                                                                <CorporateFareIcon />
+                                                                <WorkIcon />
                                                             </ListItemIcon>
                                                             <ListItemText
                                                                 sx={{ display: "inline-block", verticalAlign: "middle" }}
@@ -76,8 +75,8 @@ export const Organizations = () => {
                                                                         whiteSpace: 'nowrap',
                                                                     },
                                                                 }}
-                                                                primary={org.name}
-                                                                secondary={`ID: ${org.id}`} />
+                                                                primary={case_data.title}
+                                                                secondary={`ID: ${case_data._id}`} />
                                                             <ListItemText
                                                                 sx={{ display: "inline-block", verticalAlign: "middle", marginLeft: 10 }}
                                                                 secondaryTypographyProps={{
@@ -88,7 +87,7 @@ export const Organizations = () => {
                                                                         whiteSpace: 'nowrap',
                                                                     },
                                                                 }}
-                                                                secondary={`Description: ${org.description}`} />
+                                                                secondary={`Description: ${case_data.description}`} />
                                                         </ListItem>
                                                     ))
                                                 }
@@ -102,7 +101,6 @@ export const Organizations = () => {
                             <Typography variant="body1">You haven't select your target SOAR platform yet. Please select your target SOAR platform in settings.</Typography>
                         )
                     }
-
                 </Box>
             </Box>
         </>
