@@ -1,3 +1,9 @@
-.markdown table{
-    border: 1px solid white;
+.wmde-markdown {
+    --color-border-default: #b4b4b4;
+    --color-canvas-default: #00000000;
+    --color-canvas-subtle: #00000000;
+}
+
+table {
+    background: "transparent";
 }

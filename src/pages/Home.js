@@ -13,7 +13,7 @@ export const Home = () => {
                 <title>Home</title>
             </Helmet>
             <Box sx={{ display: "flex" }}>
-                <HorizontalNavbar title="Home" />
+                <HorizontalNavbar names={["Home"]} routes={["/"]} />
                 <VerticalNavbar />
                 <Box component="main" display="flex" flexDirection="column" alignItems="center" justifyContent="center" sx={{ minHeight: "calc(100vh - 50px)", flexGrow: 1, p: 2, mt: 5.5 }}>
                     <img src="/assets/icons/ACI_large.svg" width={250}></img>

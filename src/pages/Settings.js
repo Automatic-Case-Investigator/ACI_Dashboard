@@ -12,7 +12,7 @@ export const Settings = () => {
                 <title>Settings</title>
             </Helmet>
             <Box sx={{ display: "flex" }}>
-                <HorizontalNavbar title="Settings" />
+                <HorizontalNavbar names={["Settings"]} routes={["/settings"]} />
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                     <SOARSettings />

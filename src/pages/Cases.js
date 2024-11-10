@@ -45,7 +45,9 @@ export const Cases = () => {
                 <title>Cases</title>
             </Helmet>
             <Box sx={{ display: "flex" }}>
-                <HorizontalNavbar title={`Organizations/${orgId}/cases`} />
+                <HorizontalNavbar
+                    names={["Organizations", `${orgId}`, "cases"]}
+                    routes={["/organizations", `/organizations/${orgId}/cases`, `/organizations/${orgId}/cases`]} />
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                     {

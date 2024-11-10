@@ -44,7 +44,7 @@ export const Organizations = () => {
                 <title>Organizations</title>
             </Helmet>
             <Box sx={{ display: "flex" }}>
-                <HorizontalNavbar title="Organizations" />
+                <HorizontalNavbar names={["Organizations"]} routes={["/organizations"]} />
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                     {

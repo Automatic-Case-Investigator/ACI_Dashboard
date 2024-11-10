@@ -10,7 +10,7 @@ export const AISystems = () => {
                 <title>AI Systems</title>
             </Helmet>
             <Box sx={{ display: "flex" }}>
-                <HorizontalNavbar title="AI Systems" />
+                <HorizontalNavbar names={["AI Systems"]} routes={["/ai-systems"]} />
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                     <Typography variant="body1">Development in progress</Typography>

@@ -10,7 +10,7 @@ export const Jobs = () => {
                 <title>Jobs</title>
             </Helmet>
             <Box sx={{ display: "flex" }}>
-                <HorizontalNavbar title="Jobs" />
+                <HorizontalNavbar names={["Jobs"]} routes={["/jobs"]} />
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                     <Typography variant="body1">Development in progress</Typography>
