@@ -216,8 +216,8 @@ export const SOARSettings = () => {
                     </Tooltip>
                     <Tooltip title="Delete">
                         <IconButton onClick={() => {
-                            scheduleUpcomingAction(handleSoarDelete, params)
-                            setConfirmDialogOpen(true)
+                            scheduleUpcomingAction(handleSoarDelete, params);
+                            setConfirmDialogOpen(true);
                         }}>
                             <DeleteIcon />
                         </IconButton>
@@ -261,7 +261,7 @@ export const SOARSettings = () => {
             </Dialog>
 
             <Dialog open={confirmDialogOpen} onClose={() => { setConfirmDialogOpen(false) }} fullWidth>
-                <ConfirmationDialog selectedSoarData={selectedSoarData} onCancel={() => { setConfirmDialogOpen(false) }} onContinue={() => { executeUpcomingAction(); setConfirmDialogOpen(false) }} />
+                <ConfirmationDialog onCancel={() => { setConfirmDialogOpen(false) }} onContinue={() => { executeUpcomingAction(); setConfirmDialogOpen(false) }} />
             </Dialog>
 
             <Dialog open={editDialogOpen} onClose={handleEditDialogClose} fullWidth>

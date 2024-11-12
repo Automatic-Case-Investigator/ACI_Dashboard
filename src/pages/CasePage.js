@@ -23,6 +23,7 @@ export const CasePage = () => {
     const navigate = useNavigate();
 
     const [errorMessage, setErrorMessage] = useState("");
+    const [loading, setLoading] = useState(true);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSuccessful, setSnackbarSuccessful] = useState(true);
     const [caseData, setCaseData] = useState();
@@ -58,7 +59,6 @@ export const CasePage = () => {
         } else {
             setErrorMessage("")
             setTaskList(rawData["tasks"])
-            console.log(rawData["tasks"])
         }
     }
 
@@ -90,9 +90,15 @@ export const CasePage = () => {
         }
     }
 
-    const refresh = () => {
+    const refreshTasks = () => {
         getCaseData();
         getTaskList();
+    }
+    
+    const refresh = async () => {
+        setLoading(true);
+        await refreshTasks();
+        setLoading(false);
     }
 
     const debouncedGenerateTask = debounce(generateTask, 300);
@@ -139,7 +145,7 @@ export const CasePage = () => {
                             ) : (
                                 <>
                                     {
-                                        caseData ? (
+                                        caseData && !loading ? (
                                             <>
                                                 <Box>
                                                     <Typography variant="body1" sx={{ display: "inline-block", overflow: "scroll" }}>{caseData.title}</Typography>
@@ -168,7 +174,7 @@ export const CasePage = () => {
                                                             ) : (
                                                                 <>
                                                                     <Typography>Tasks:</Typography>
-                                                                    <TaskList taskList={taskList} orgId={orgId} caseId={caseId} />
+                                                                    <TaskList taskList={taskList} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh}/>
                                                                 </>
                                                             )
                                                         }
