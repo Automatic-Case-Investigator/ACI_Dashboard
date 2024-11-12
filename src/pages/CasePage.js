@@ -1,26 +1,22 @@
-import { Helmet } from "react-helmet";
+import { Box, Button, Divider, IconButton, Snackbar, Tooltip, Typography } from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { Box, Button, Chip, Divider, IconButton, Snackbar, Tooltip, Typography } from "@mui/material";
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import { useNavigate, useParams } from "react-router-dom";
-import PuffLoader from "react-spinners/PuffLoader"
 import MarkdownPreview from '@uiw/react-markdown-preview';
-import { useEffect, useState } from "react";
 import RefreshIcon from '@mui/icons-material/Refresh';
-import Accordion from '@mui/material/Accordion';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Alert from '@mui/material/Alert';
+import PuffLoader from "react-spinners/PuffLoader";
+import { TaskList } from "../components/TaskList/TaskList";
 import { darkTheme } from "../themes/darkTheme";
-import "../css/markdown.css"
+import TabContext from '@mui/lab/TabContext';
+import { useEffect, useState } from "react";
+import TabPanel from '@mui/lab/TabPanel';
+import Alert from '@mui/material/Alert';
+import TabList from '@mui/lab/TabList';
+import { Helmet } from "react-helmet";
+import Tab from '@mui/material/Tab';
 import { debounce } from 'lodash';
 
-
+import "../css/markdown.css"
 
 export const CasePage = () => {
     const { orgId, caseId } = useParams();
@@ -30,7 +26,7 @@ export const CasePage = () => {
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSuccessful, setSnackbarSuccessful] = useState(true);
     const [caseData, setCaseData] = useState();
-    const [taskData, setTaskData] = useState([]);
+    const [taskList, setTaskList] = useState([]);
     const [currentTab, setCurrentTab] = useState(0);
     const [targetSOAR, setTargetSOAR] = useState(() => {
         const saved = localStorage.getItem("targetSOAR");
@@ -53,7 +49,7 @@ export const CasePage = () => {
         }
     }
 
-    const getTaskData = async () => {
+    const getTaskList = async () => {
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_tasks/?soar_id=${targetSOAR.id}&org_id=${orgId}&case_id=${caseId}`);
         const rawData = await response.json();
 
@@ -61,7 +57,8 @@ export const CasePage = () => {
             setErrorMessage(rawData["error"])
         } else {
             setErrorMessage("")
-            setTaskData(rawData["tasks"])
+            setTaskList(rawData["tasks"])
+            console.log(rawData["tasks"])
         }
     }
 
@@ -95,7 +92,7 @@ export const CasePage = () => {
 
     const refresh = () => {
         getCaseData();
-        getTaskData();
+        getTaskList();
     }
 
     const debouncedGenerateTask = debounce(generateTask, 300);
@@ -110,9 +107,13 @@ export const CasePage = () => {
 
     return (
         <>
-            <Helmet>
-                <title>CasePage</title>
-            </Helmet>
+            {
+                caseData && (
+                    <Helmet>
+                        <title>{caseData.title}</title>
+                    </Helmet>
+                )
+            }
             <Box sx={{ display: "flex" }}>
                 <HorizontalNavbar
                     names={["Organizations", `${orgId}`, "cases", `${caseId}`]}
@@ -130,7 +131,7 @@ export const CasePage = () => {
                         {snackbarMessage}
                     </Alert>
                 </Snackbar>
-                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
+                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5, width: "calc(100vw - 110px)" }}>
                     {
                         targetSOAR ? (
                             errorMessage.length > 0 ? (
@@ -141,7 +142,7 @@ export const CasePage = () => {
                                         caseData ? (
                                             <>
                                                 <Box>
-                                                    <Typography variant="body1" sx={{ display: "inline-block" }}>{caseData.title}</Typography>
+                                                    <Typography variant="body1" sx={{ display: "inline-block", overflow: "scroll" }}>{caseData.title}</Typography>
                                                     <Tooltip title="Refresh">
                                                         <IconButton sx={{ float: "right" }} onClick={refresh}>
                                                             <RefreshIcon />
@@ -160,36 +161,14 @@ export const CasePage = () => {
                                                     <TabPanel value={1}>
                                                         <Typography sx={{ paddingBottom: 1 }}>The task generation AI is trained specifically to analyze security cases and generate meaningful tasks suited for SOC analysis.</Typography>
                                                         <Button color="secondary" variant="outlined" onClick={debouncedGenerateTask}>Generate Tasks</Button>
-                                                        <br />
-                                                        <br />
-                                                        <Divider />
+                                                        <Divider sx={{ paddingTop: 1, marginBottom: 2 }} />
                                                         {
-                                                            taskData.length === 0 ? (
+                                                            taskList.length === 0 ? (
                                                                 <Typography>No tasks were found</Typography>
                                                             ) : (
                                                                 <>
                                                                     <Typography>Tasks:</Typography>
-                                                                    {
-                                                                        taskData.map((task, index) => (
-                                                                            <Accordion key={index}>
-                                                                                <AccordionSummary
-                                                                                    expandIcon={<ExpandMoreIcon />}
-                                                                                    aria-controls="panel1-content"
-                                                                                    id="panel1-header"
-                                                                                >
-                                                                                    {task.title}
-                                                                                    {
-                                                                                        task.group === "Automatic Case Investigator" && (
-                                                                                            <Chip label="Generated" color="success" sx={{ marginLeft: 1 }} />
-                                                                                        )
-                                                                                    }
-                                                                                </AccordionSummary>
-                                                                                <AccordionDetails>
-                                                                                    {task.description}
-                                                                                </AccordionDetails>
-                                                                            </Accordion>
-                                                                        ))
-                                                                    }
+                                                                    <TaskList taskList={taskList} orgId={orgId} caseId={caseId} />
                                                                 </>
                                                             )
                                                         }

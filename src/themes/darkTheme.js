@@ -13,6 +13,9 @@ export const darkTheme = createTheme({
         },
         secondary: {
             main: "#00FFEA"
+        },
+        weak: {
+            main: "#FFFFFFAA"
         }
     },
     typography: {
@@ -35,7 +38,7 @@ export const darkTheme = createTheme({
             styleOverrides: {
                 colorPrimary: {
                     backgroundColor: "#21335F",
-                    borderBottom: "1px solid #FFFFFF88"
+                    borderBottom: "1px solid #FFFFFF66"
                 }
             }
         },
@@ -44,7 +47,7 @@ export const darkTheme = createTheme({
                 paper: {
                     backgroundColor: '#21335F',
                     color: '#FFFFFF',
-                    borderRight: "1px solid #FFFFFF88"
+                    borderRight: "1px solid #FFFFFF66"
                 },
             }
         },

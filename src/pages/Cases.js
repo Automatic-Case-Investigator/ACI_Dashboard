@@ -1,11 +1,12 @@
-import { Helmet } from "react-helmet";
+import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import WorkIcon from '@mui/icons-material/Work';
 import PuffLoader from "react-spinners/PuffLoader"
+import WorkIcon from '@mui/icons-material/Work';
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
+
 
 export const Cases = () => {
     const { orgId } = useParams();
@@ -63,7 +64,7 @@ export const Cases = () => {
                                             <List>
                                                 {
                                                     cases.map((case_data, index) => (
-                                                        <ListItem key={index} sx={{ display: "block" }} onClick={() => { navigate(`/organizations/${orgId}/cases/${case_data._id}`) }}>
+                                                        <ListItem key={index} sx={{ display: "block" }} onClick={() => { navigate(`/organizations/${orgId}/cases/${case_data.id}`) }}>
                                                             <ListItemIcon sx={{ display: "inline-block", verticalAlign: "middle" }}>
                                                                 <WorkIcon />
                                                             </ListItemIcon>
@@ -78,7 +79,7 @@ export const Cases = () => {
                                                                     },
                                                                 }}
                                                                 primary={case_data.title}
-                                                                secondary={`ID: ${case_data._id}`} />
+                                                                secondary={`ID: ${case_data.id}`} />
                                                             <ListItemText
                                                                 sx={{ display: "inline-block", verticalAlign: "middle", marginLeft: 10 }}
                                                                 secondaryTypographyProps={{

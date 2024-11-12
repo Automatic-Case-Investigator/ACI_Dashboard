@@ -317,7 +317,6 @@ export const SOARSettings = () => {
                                 color="primary.main"
                                 sx={{
                                     border: 0,
-                                    width: "calc(100vw - 125px)",
                                     color: "primary.main",
                                     "& .MuiDataGrid-checkboxInput": {
                                         color: "primary.main",

@@ -13,6 +13,7 @@ import { Jobs } from "./pages/Jobs";
 import { Cases } from "./pages/Cases";
 import { CasePage } from "./pages/CasePage";
 import { darkTheme } from "./themes/darkTheme";
+import { TaskPage } from "./pages/TaskPage";
 
 
 
@@ -27,6 +28,7 @@ function App() {
                     <Route path="/organizations" element={<Organizations />}></Route>
                     <Route path="/organizations/:orgId/cases" element={<Cases />} />
                     <Route path="/organizations/:orgId/cases/:caseId" element={<CasePage />} />
+                    <Route path="/organizations/:orgId/cases/:caseId/tasks/:taskId" element={<TaskPage />} />
                     <Route path="/ai-systems" element={<AISystems />}></Route>
                     <Route path="/jobs" element={<Jobs />}></Route>
                     <Route path="*" element={<Navigate to="/" />}></Route>
