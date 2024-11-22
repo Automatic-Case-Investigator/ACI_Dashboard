@@ -132,15 +132,15 @@ export const TaskGenerationTrainerDashboard = () => {
             } else {
                 setTrainErrorMessage("")
                 await fetch(
-                    process.env.REACT_APP_BACKEND_URL + `ai_backend/add_case_data`,
+                    process.env.REACT_APP_BACKEND_URL + `ai_backend/add_case_data/`,
                     {
                         method: "POST",
-                        body: {
+                        body: JSON.stringify({
                             id: caseDataForest.filter((org) => org.id === caseOrgIds[id])[0].id,
                             title: caseDataForest.filter((org) => org.id === caseOrgIds[id])[0].children.filter((child) => child.id === id)[0].title,
                             description: caseDataForest.filter((org) => org.id === caseOrgIds[id])[0].children.filter((child) => child.id === id)[0].description,
                             tasks: rawData["tasks"],
-                        }
+                        })
                     }
                 );
             }

@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { Box } from "@mui/material";
-import { TaskGenerationTrainerDashboard } from "../components/ai_trainer_dashboard/TaskGenerationTrainerDashboard";
+import { TaskGenerationTrainerDashboard } from "../components/ai_system_dashboard/TaskGenerationTrainerDashboard";
 
 export const AISystems = () => {
     return (
