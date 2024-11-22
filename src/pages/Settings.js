@@ -16,7 +16,6 @@ export const Settings = () => {
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5, width: 'calc(100vw - 200px)' }}>
                     <SOARSettings />
-                    <Typography variant="h6">SIEM</Typography>
                 </Box>
             </Box>
         </>

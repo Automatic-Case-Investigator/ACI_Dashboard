@@ -5,8 +5,8 @@ export const darkTheme = createTheme({
     palette: {
         mode: "dark",
         background: {
-            default: "#212940",
-            paper: '#21335F'
+            default: "#12192d",
+            paper: '#172549'
         },
         primary: {
             main: "#FFFFFF"
@@ -37,17 +37,15 @@ export const darkTheme = createTheme({
         MuiAppBar: {
             styleOverrides: {
                 colorPrimary: {
-                    backgroundColor: "#21335F",
-                    borderBottom: "1px solid #FFFFFF66"
+                    backgroundColor: "#172549"
                 }
             }
         },
         MuiDrawer: {
             styleOverrides: {
                 paper: {
-                    backgroundColor: '#21335F',
-                    color: '#FFFFFF',
-                    borderRight: "1px solid #FFFFFF66"
+                    backgroundColor: '#172549',
+                    color: '#FFFFFF'
                 },
             }
         },

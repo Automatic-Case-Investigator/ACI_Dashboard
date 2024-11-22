@@ -1,7 +1,8 @@
 import { Helmet } from "react-helmet";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import { TaskGenerationTrainerDashboard } from "../components/ai_trainer_dashboard/TaskGenerationTrainerDashboard";
 
 export const AISystems = () => {
     return (
@@ -13,7 +14,7 @@ export const AISystems = () => {
                 <HorizontalNavbar names={["AI Systems"]} routes={["/ai-systems"]} />
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
-                    <Typography variant="body1">Development in progress</Typography>
+                    <TaskGenerationTrainerDashboard />
                 </Box>
             </Box>
         </>
