@@ -145,6 +145,7 @@ export const TaskGenerationTrainerDashboard = () => {
                 );
             }
         }
+        await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/train_model/`, { method: "POST" });
     }
 
     useEffect(() => {
