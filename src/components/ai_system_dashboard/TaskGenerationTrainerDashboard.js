@@ -23,6 +23,7 @@ export const TaskGenerationTrainerDashboard = () => {
 
     // hyperparameter setting
     const [seed, setSeed] = useState(3407);
+    const [maxSteps, setMaxSteps] = useState(100);
     const [learningRate, setLearningRate] = useState(2e-4);
     const [gradientAccumulationSteps, setGradientAccumulationSteps] = useState(4);
     const [weightDecay, setWeightDecay] = useState(0.0001);
@@ -143,7 +144,20 @@ export const TaskGenerationTrainerDashboard = () => {
                 );
             }
         }
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/train_model/`, { method: "POST" });
+        const requestBody = new FormData();
+        requestBody.append("seed", seed);
+        requestBody.append("max_steps", maxSteps);
+        requestBody.append("learning_rate", learningRate);
+        requestBody.append("gradient_accumulation_steps", gradientAccumulationSteps);
+        requestBody.append("weight_decay", weightDecay);
+
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/train_model/`,
+            {
+                method: "POST",
+                body: requestBody
+            }
+        );
         const rawData = await response.json();
         if (rawData["message"] === "Success") {
             setSnackbarMessage("Successfully created model training job. Check jobs page for details.");
@@ -194,58 +208,80 @@ export const TaskGenerationTrainerDashboard = () => {
             }
             <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    Data Selection
+                    Train on custom data
                 </AccordionSummary>
                 <AccordionDetails>
-                    <RichTreeView
-                        items={caseDataForest}
-                        multiSelect
-                        checkboxSelection
-                        apiRef={apiRef}
-                        selectedItems={selectedItems}
-                        onSelectedItemsChange={handleSelectedItemsChange}
-                        onItemSelectionToggle={handleItemSelectionToggle}
-                        sx={{
-                            "& .MuiCheckbox-root": {
-                                "&.Mui-checked": {
-                                    color: "secondary.main",
-                                },
-                            }
-                        }} />
+                    <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            Data Selection
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <RichTreeView
+                                items={caseDataForest}
+                                multiSelect
+                                checkboxSelection
+                                apiRef={apiRef}
+                                selectedItems={selectedItems}
+                                onSelectedItemsChange={handleSelectedItemsChange}
+                                onItemSelectionToggle={handleItemSelectionToggle}
+                                sx={{
+                                    "& .MuiCheckbox-root": {
+                                        "&.Mui-checked": {
+                                            color: "secondary.main",
+                                        },
+                                    }
+                                }} />
+                        </AccordionDetails>
+                    </Accordion>
+                    <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            Hyper Parameters
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Box>
+                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Seed:</Typography>
+                                <TextField size="small" value={seed} onInput={(e) => setSeed(+e.target.value)} />
+                            </Box>
+                            <br />
+                            <Box>
+                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Max steps:</Typography>
+                                <TextField size="small" value={maxSteps} onInput={(e) => setMaxSteps(+e.target.value)} />
+                            </Box>
+                            <br />
+                            <Box>
+                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Learning Rate:</Typography>
+                                <TextField size="small" value={learningRate} onInput={(e) => setLearningRate(+e.target.value)} />
+                            </Box>
+                            <br />
+                            <Box>
+                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Gradient Accumulation Steps:</Typography>
+                                <TextField size="small" value={gradientAccumulationSteps} onInput={(e) => setGradientAccumulationSteps(+e.target.value)} />
+                            </Box>
+                            <br />
+                            <Box>
+                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Weight Decay:</Typography>
+                                <TextField size="small" value={weightDecay} onInput={(e) => setWeightDecay(+e.target.value)} />
+                            </Box>
+                            <br />
+                        </AccordionDetails>
+                    </Accordion>
+                    <Box sx={{ paddingTop: 1, display: "flex", gap: 1 }}>
+                        <Button variant="outlined" color="secondary" size="small" onClick={trainModel}>Train</Button>
+                    </Box>
+
                 </AccordionDetails>
             </Accordion>
             <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    Hyper Parameters
+                    Reset baseline model
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Box>
-                        <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Seed:</Typography>
-                        <TextField size="small" value={seed} onInput={(e) => setSeed(+e.target.value)} />
+                    <Typography>By clicking the button below, you will reset your model to the pre-trained state.</Typography>
+                    <Box sx={{ paddingTop: 1, display: "flex", gap: 1 }}>
+                        <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Load baseline</Button>
                     </Box>
-                    <br />
-                    <Box>
-                        <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Learning Rate:</Typography>
-                        <TextField size="small" value={learningRate} onInput={(e) => setLearningRate(+e.target.value)} />
-                    </Box>
-                    <br />
-                    <Box>
-                        <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Gradient Accumulation Steps:</Typography>
-                        <TextField size="small" value={gradientAccumulationSteps} onInput={(e) => setGradientAccumulationSteps(+e.target.value)} />
-                    </Box>
-                    <br />
-                    <Box>
-                        <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Weight Decay:</Typography>
-                        <TextField size="small" value={weightDecay} onInput={(e) => setWeightDecay(+e.target.value)} />
-                    </Box>
-                    <br />
                 </AccordionDetails>
             </Accordion>
-            <Box sx={{paddingTop: 1, display: "flex", gap: 1}}>
-                <Button variant="outlined" color="secondary" size="small" onClick={trainModel}>Train</Button>
-                <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Load baseline</Button>
-            </Box>
-
         </>
     )
 }

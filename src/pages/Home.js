@@ -20,7 +20,7 @@ export const Home = () => {
                     <br />
                     <br />
                     <Typography variant="h3">Automatic Case Investigator</Typography>
-                    <Button color="secondary" variant="outlined"><CoffeeIcon sx={{ mr: 1 }} />Buy me a coffee</Button>
+                    <Button color="secondary" variant="outlined" sx={{marginTop: 1}}><CoffeeIcon sx={{ mr: 1 }} />Buy me a coffee</Button>
                 </Box>
             </Box>
         </>

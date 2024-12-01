@@ -24,6 +24,13 @@ export const darkTheme = createTheme({
         },
     },
     components: {
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 0,
+                },
+            },
+        },
         MuiIconButton: {
             styleOverrides: {
                 root: {
