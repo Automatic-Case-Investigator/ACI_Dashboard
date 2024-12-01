@@ -166,7 +166,7 @@ export const CasePage = () => {
                                                     <TabPanel value={0}><MarkdownPreview source={caseData.description} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main }} /></TabPanel>
                                                     <TabPanel value={1}>
                                                         <Typography sx={{ paddingBottom: 1 }}>The task generation AI is trained specifically to analyze security cases and generate meaningful tasks suited for SOC analysis.</Typography>
-                                                        <Button color="secondary" variant="outlined" onClick={debouncedGenerateTask}>Generate Tasks</Button>
+                                                        <Button size="small" color="secondary" variant="outlined" onClick={debouncedGenerateTask}>Generate Tasks</Button>
                                                         <Divider sx={{ paddingTop: 1, marginBottom: 2 }} />
                                                         {
                                                             taskList.length === 0 ? (

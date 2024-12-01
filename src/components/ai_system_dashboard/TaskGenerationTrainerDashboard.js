@@ -1,4 +1,4 @@
-import { Box, Button, Divider, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Divider, Snackbar, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks';
@@ -12,7 +12,6 @@ export const TaskGenerationTrainerDashboard = () => {
     const [caseOrgIds, setCaseOrgIds] = useState({});
     const [caseDataForest, setCaseDataForest] = useState([]);
     const [overallErrorMessage, setOverallErrorMessage] = useState("");
-    const [trainErrorMessage, setTrainErrorMessage] = useState("");
     const [selectedItems, setSelectedItems] = useState([]);
     const toggledItemRef = useRef({});
     const apiRef = useTreeViewApiRef();
@@ -27,6 +26,11 @@ export const TaskGenerationTrainerDashboard = () => {
     const [learningRate, setLearningRate] = useState(2e-4);
     const [gradientAccumulationSteps, setGradientAccumulationSteps] = useState(4);
     const [weightDecay, setWeightDecay] = useState(0.0001);
+
+    // snackbar states
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarSuccessful, setSnackbarSuccessful] = useState(true);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
 
     function getItemDescendantsIds(item) {
         const ids = [];
@@ -115,10 +119,6 @@ export const TaskGenerationTrainerDashboard = () => {
     }
 
     const trainModel = async () => {
-        if (selectedItems.length === 0) {
-            setTrainErrorMessage("No data is selected");
-        }
-
         for (let id of selectedItems) {
             if (!caseIds.includes(id)) {
                 continue;
@@ -128,11 +128,9 @@ export const TaskGenerationTrainerDashboard = () => {
             const rawData = await response.json();
 
             if (rawData["error"]) {
-                setTrainErrorMessage(rawData["error"])
             } else {
-                setTrainErrorMessage("")
                 await fetch(
-                    process.env.REACT_APP_BACKEND_URL + `ai_backend/add_case_data/`,
+                    process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/set_case_data/`,
                     {
                         method: "POST",
                         body: JSON.stringify({
@@ -145,23 +143,51 @@ export const TaskGenerationTrainerDashboard = () => {
                 );
             }
         }
-        await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/train_model/`, { method: "POST" });
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/train_model/`, { method: "POST" });
+        const rawData = await response.json();
+        if (rawData["message"] === "Success") {
+            setSnackbarMessage("Successfully created model training job. Check jobs page for details.");
+            setSnackbarSuccessful(true);
+            setSnackbarOpen(true);
+        } else {
+            setSnackbarMessage("You already have one model training job. Please wait for the job to be finished.");
+            setSnackbarSuccessful(false);
+            setSnackbarOpen(true);
+        }
+    }
+
+    const loadBaseline = async () => {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/restore_baseline/`, { method: "POST" });
+        const rawData = await response.json();
+        if (rawData["message"] === "Success") {
+            setSnackbarMessage("Successfully created model reset job. Check jobs page for details.");
+            setSnackbarSuccessful(true);
+            setSnackbarOpen(true);
+        } else {
+            setSnackbarMessage("You already have one model reset job. Please wait for the job to be finished.");
+            setSnackbarSuccessful(false);
+            setSnackbarOpen(true);
+        }
     }
 
     useEffect(() => {
         buildCaseDataForest();
     }, []);
 
-    useEffect(() => {
-        console.log(selectedItems);
-    }, [selectedItems]);
-
-    useEffect(() => {
-        console.log(caseDataForest);
-    }, [caseDataForest]);
-
     return (
         <>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={5000}
+                onClose={() => { setSnackbarOpen(false) }}>
+                <Alert
+                    onClose={() => { setSnackbarOpen(false) }}
+                    severity={snackbarSuccessful ? "success" : "error"}
+                    variant="filled"
+                    sx={{ width: '100%', color: "primary.main" }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
             <Typography variant="h6">Task Generation</Typography>
             {
                 overallErrorMessage && <Typography variant="body1">{overallErrorMessage}</Typography>
@@ -215,11 +241,11 @@ export const TaskGenerationTrainerDashboard = () => {
                     <br />
                 </AccordionDetails>
             </Accordion>
-            <Divider sx={{ paddingTop: 1, marginBottom: 2 }} />
-            <Button variant="outlined" color="secondary" onClick={trainModel}>Train</Button>
-            {
-                trainErrorMessage && <Typography variant="body1">{trainErrorMessage}</Typography>
-            }
+            <Box sx={{paddingTop: 1, display: "flex", gap: 1}}>
+                <Button variant="outlined" color="secondary" size="small" onClick={trainModel}>Train</Button>
+                <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Load baseline</Button>
+            </Box>
+
         </>
     )
 }
