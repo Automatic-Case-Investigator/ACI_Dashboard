@@ -78,7 +78,7 @@ export const TaskGenerationTrainerDashboard = () => {
     };
 
     const buildCaseDataForest = async () => {
-        const orgsResponse = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_organizations/?soar_id=${targetSOAR.id}`);
+        const orgsResponse = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/organizations/?soar_id=${targetSOAR.id}`);
         const orgsRawData = await orgsResponse.json();
         let updatedCaseDataForest = [];
         let fetchedCaseIds = [];
@@ -95,7 +95,7 @@ export const TaskGenerationTrainerDashboard = () => {
                 label: `${org.name} (${org.id})`,
                 children: [],
             });
-            const casesResponse = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_cases/?soar_id=${targetSOAR.id}&org_id=${org.id}`);
+            const casesResponse = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&org_id=${org.id}`);
             const casesRawData = await casesResponse.json();
 
             if (casesRawData["error"]) {
@@ -125,13 +125,13 @@ export const TaskGenerationTrainerDashboard = () => {
                 continue;
             }
 
-            const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_tasks/?soar_id=${targetSOAR.id}&case_id=${id}`);
+            const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&case_id=${id}`);
             const rawData = await response.json();
 
             if (rawData["error"]) {
             } else {
                 await fetch(
-                    process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/set_case_data/`,
+                    process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/case_tmp_storage/`,
                     {
                         method: "POST",
                         body: JSON.stringify({

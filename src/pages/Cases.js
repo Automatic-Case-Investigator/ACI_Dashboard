@@ -21,7 +21,7 @@ export const Cases = () => {
     });
 
     const getCases = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_cases/?soar_id=${targetSOAR.id}&org_id=${orgId}`);
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&org_id=${orgId}`);
         const rawData = await response.json();
 
         if (rawData["error"]) {

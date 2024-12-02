@@ -68,8 +68,8 @@ export const TaskList = ({ taskList, soarId, orgId, caseId, onRefresh }) => {
                 formData.append("task_id", params.row.id);
 
                 await fetch(
-                    process.env.REACT_APP_BACKEND_URL + "soar/delete_task/",
-                    { method: "POST", body: formData }
+                    process.env.REACT_APP_BACKEND_URL + "soar/task/",
+                    { method: "DELETE", body: formData }
                 );
 
                 updatedList.splice(index, 1);
@@ -94,8 +94,8 @@ export const TaskList = ({ taskList, soarId, orgId, caseId, onRefresh }) => {
                     formData.append("task_id", currentSelectionModel[selectionModelIndex]);
 
                     await fetch(
-                        process.env.REACT_APP_BACKEND_URL + "soar/delete_task/",
-                        { method: "POST", body: formData }
+                        process.env.REACT_APP_BACKEND_URL + "soar/task/",
+                        { method: "DELETE", body: formData }
                     );
                     currentSelectionModel.splice(selectionModelIndex, 1);
                     deleted = true;

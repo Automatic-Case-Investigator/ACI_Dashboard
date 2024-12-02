@@ -39,7 +39,7 @@ export const CasePage = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const getCaseData = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_case/?soar_id=${targetSOAR.id}&case_id=${caseId}`);
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&case_id=${caseId}`);
         const rawData = await response.json();
 
         if (rawData["error"]) {
@@ -51,7 +51,7 @@ export const CasePage = () => {
     }
 
     const getTaskList = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_tasks/?soar_id=${targetSOAR.id}&org_id=${orgId}&case_id=${caseId}`);
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&org_id=${orgId}&case_id=${caseId}`);
         const rawData = await response.json();
 
         if (rawData["error"]) {
@@ -68,7 +68,7 @@ export const CasePage = () => {
         requestBody.append("case_id", caseId);
 
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `soar/generate_tasks/`,
+            process.env.REACT_APP_BACKEND_URL + `soar/task_generator/`,
             {
                 method: "POST",
                 body: requestBody

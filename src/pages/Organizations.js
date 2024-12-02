@@ -18,7 +18,7 @@ export const Organizations = () => {
     });
 
     const getOrganizations = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_organizations/?soar_id=${targetSOAR.id}`);
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/organizations/?soar_id=${targetSOAR.id}`);
         const rawData = await response.json();
 
         if (rawData["error"]) {

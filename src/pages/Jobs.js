@@ -71,8 +71,8 @@ export const Jobs = () => {
                 formData.append("job_id", params.row.id);
 
                 await fetch(
-                    process.env.REACT_APP_BACKEND_URL + "jobs/remove_job/",
-                    { method: "POST", body: formData }
+                    process.env.REACT_APP_BACKEND_URL + "jobs/",
+                    { method: "DELETE", body: formData }
                 );
 
                 updatedList.splice(index, 1);
@@ -94,8 +94,8 @@ export const Jobs = () => {
                     formData.append("job_id", jobList[index].id);
 
                     await fetch(
-                        process.env.REACT_APP_BACKEND_URL + "jobs/remove_job/",
-                        { method: "POST", body: formData }
+                        process.env.REACT_APP_BACKEND_URL + "jobs/",
+                        { method: "DELETE", body: formData }
                     );
                     currentSelectionModel.splice(selectionModelIndex, 1);
                     deleted = true;
@@ -110,7 +110,7 @@ export const Jobs = () => {
     }
 
     const getJobList = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `jobs/get_jobs/`);
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `jobs/`);
         const rawData = await response.json();
 
         if (rawData["error"]) {

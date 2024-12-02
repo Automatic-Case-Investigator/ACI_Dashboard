@@ -49,7 +49,7 @@ export const SOARSettings = () => {
     // fetch the soar data from the backend
     const updateSoarsData = async () => {
         setSoarsLoading(true);
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/get_soars_info/");
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/");
         const rawData = (await response.json())["message"];
         const output = [];
         const targetSOAR = JSON.parse(localStorage.getItem("targetSOAR"));
@@ -95,8 +95,8 @@ export const SOARSettings = () => {
                 formData.append("soar_id", params.row.id);
 
                 await fetch(
-                    process.env.REACT_APP_BACKEND_URL + "soar/delete_soar_info/",
-                    { method: "POST", body: formData }
+                    process.env.REACT_APP_BACKEND_URL + "soar/soar_info/",
+                    { method: "DELETE", body: formData }
                 );
 
                 updatedData.splice(index, 1);
@@ -126,8 +126,8 @@ export const SOARSettings = () => {
                     formData.append("soar_id", currentSelectionModel[selectionModelIndex]);
 
                     await fetch(
-                        process.env.REACT_APP_BACKEND_URL + "soar/delete_soar_info/",
-                        { method: "POST", body: formData }
+                        process.env.REACT_APP_BACKEND_URL + "soar/soar_info/",
+                        { method: "DELETE", body: formData }
                     );
 
                     updatedData.splice(index, 1);
@@ -156,7 +156,7 @@ export const SOARSettings = () => {
         requestBody.append("base_dir", urlObj.pathname);
         requestBody.append("api_key", soarInfo.apiKey);
 
-        await fetch(process.env.REACT_APP_BACKEND_URL + "soar/add_soar_info/", {
+        await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/", {
             method: "POST",
             body: requestBody
         });
@@ -174,7 +174,7 @@ export const SOARSettings = () => {
         requestBody.append("base_dir", urlObj.pathname);
         requestBody.append("api_key", updatedInfo.apiKey);
 
-        await fetch(process.env.REACT_APP_BACKEND_URL + "soar/set_soar_info/", {
+        await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/", {
             method: "POST",
             body: requestBody
         });
