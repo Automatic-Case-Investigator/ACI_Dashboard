@@ -33,9 +33,7 @@ export const VerticalNavbar = () => {
             <Drawer
                 className={classes.drawer}
                 variant="permanent"
-                classes={{
-                    paper: classes.drawerPaper,
-                }}
+                classes={{paper: classes.drawerPaper}}
                 anchor="left"
             >
                 <Stack direction="column"
@@ -43,23 +41,22 @@ export const VerticalNavbar = () => {
                     justifyContent="center">
                     <Tooltip title="Home" placement="right">
                         <Button sx={{ height: 50 }} fullWidth onClick={() => {navigate("/")}}>
-                            {/* <HomeIcon color="primary" fontSize="large" /> */}
                             <img src="/assets/icons/ACI_small.svg" width={30}></img>
                         </Button>
                     </Tooltip>
                     <Tooltip title="Organizations" placement="right">
                         <Button sx={{ height: 50 }} fullWidth onClick={() => {navigate("/organizations")}}>
-                            <CorporateFareIcon color="primary" />
+                            <CorporateFareIcon />
                         </Button>
                     </Tooltip>
                     <Tooltip title="AI systems" placement="right">
                         <Button sx={{ height: 50 }} fullWidth onClick={() => {navigate("/ai-systems")}}>
-                            <PrecisionManufacturingIcon color="primary" />
+                            <PrecisionManufacturingIcon />
                         </Button>
                     </Tooltip>
                     <Tooltip title="Jobs" placement="right">
                         <Button sx={{ height: 50 }} fullWidth onClick={() => {navigate("/jobs")}}>
-                            <MemoryIcon color="primary" />
+                            <MemoryIcon />
                         </Button>
                     </Tooltip>
                 </Stack>

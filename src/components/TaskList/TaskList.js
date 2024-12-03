@@ -112,7 +112,7 @@ export const TaskList = ({ taskList, soarId, orgId, caseId, onRefresh }) => {
 
     useEffect(() => {
         setLoading(true);
-        if (taskList && taskList.length > 0) {
+        if (taskList) {
             for (let index = 0; index < taskList.length; index++) {
                 taskList[index].createdAt = new Date(taskList[index].createdAt)
             }
@@ -125,28 +125,26 @@ export const TaskList = ({ taskList, soarId, orgId, caseId, onRefresh }) => {
             {
                 !loading ? (
                     <>
-                        <Box sx={{ height: 44 }}>
-                            {
-                                selectionModel.length > 0 && (
+                        {
+                            selectionModel.length > 0 && (
 
-                                    <Box sx={{ float: "right" }}>
-                                        <Tooltip title="Delete Selection">
-                                            <IconButton onClick={() => {
-                                                scheduleUpcomingAction(handleTaskMassDelete)
-                                                setConfirmDialogOpen(true)
-                                            }}>
-                                                <DeleteIcon style={{ color: red[500] }} />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Box>
-                                )
-                            }
-                        </Box>
+                                <Box sx={{ float: "right" }}>
+                                    <Tooltip title="Delete Selection">
+                                        <IconButton onClick={() => {
+                                            scheduleUpcomingAction(handleTaskMassDelete)
+                                            setConfirmDialogOpen(true)
+                                        }}>
+                                            <DeleteIcon style={{ color: red[500] }} />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Box>
+                            )
+                        }
 
                         <Dialog open={confirmDialogOpen}>
                             <ConfirmationDialog onCancel={() => { setConfirmDialogOpen(false) }} onContinue={() => { executeUpcomingAction(); setConfirmDialogOpen(false) }} />
                         </Dialog>
-                        <Paper sx={{ height: 400, width: "calc(100vw - 160px)" }}>
+                        <Paper sx={{ marginTop: 2, height: 400, width: "calc(100vw - 160px)" }}>
                             <DataGrid
                                 rows={formattedTaskList}
                                 columns={columns}
@@ -178,7 +176,7 @@ export const TaskList = ({ taskList, soarId, orgId, caseId, onRefresh }) => {
                         </Paper>
                     </>
                 ) : (
-                    <PuffLoader color="#00ffea" />
+                    <PuffLoader color="#00ffea" cssOverride={{ marginTop: 16 }} />
                 )
             }
         </>

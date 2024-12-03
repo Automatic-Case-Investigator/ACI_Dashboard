@@ -35,7 +35,7 @@ export const TaskPage = () => {
     }
 
     const getTaskLogs = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/get_task_logs/?soar_id=${targetSOAR.id}&task_id=${taskId}`);
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/task_log/?soar_id=${targetSOAR.id}&task_id=${taskId}`);
         const rawData = await response.json();
 
         if (rawData["error"]) {

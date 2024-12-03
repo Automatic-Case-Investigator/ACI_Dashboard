@@ -53,8 +53,6 @@ export const Organizations = () => {
                                 <Typography variant="body1">{errorMessage}</Typography>
                             ) : (
                                 <>
-                                    <Typography variant="body1">Organizations for SOAR "{targetSOAR.name}":</Typography>
-
                                     {
                                         organizations.length === 0 ? (
                                             <PuffLoader color="#00ffea" />

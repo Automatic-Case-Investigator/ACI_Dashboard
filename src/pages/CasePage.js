@@ -94,7 +94,7 @@ export const CasePage = () => {
         getCaseData();
         getTaskList();
     }
-    
+
     const refresh = async () => {
         setLoading(true);
         await refreshTasks();
@@ -148,7 +148,7 @@ export const CasePage = () => {
                                         caseData && !loading ? (
                                             <>
                                                 <Box>
-                                                    <Typography variant="body1" sx={{ display: "inline-block", overflow: "scroll" }}>{caseData.title}</Typography>
+                                                    <Typography variant="body1" sx={{ display: "inline-block" }}>{caseData.title}</Typography>
                                                     <Tooltip title="Refresh">
                                                         <IconButton sx={{ float: "right" }} onClick={refresh}>
                                                             <RefreshIcon />
@@ -159,25 +159,14 @@ export const CasePage = () => {
                                                     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                                         <TabList indicatorColor="secondary" onChange={(_, newValue) => { setCurrentTab(newValue) }} aria-label="lab API tabs example">
                                                             <Tab label="General" value={0} />
-                                                            <Tab label="Tasks Generation" value={1} />
+                                                            <Tab label="Tasks" value={1} />
                                                             <Tab label="Automatic Investigation" value={2} />
                                                         </TabList>
                                                     </Box>
                                                     <TabPanel value={0}><MarkdownPreview source={caseData.description} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main }} /></TabPanel>
                                                     <TabPanel value={1}>
-                                                        <Typography sx={{ paddingBottom: 1 }}>The task generation AI is trained specifically to analyze security cases and generate meaningful tasks suited for SOC analysis.</Typography>
                                                         <Button size="small" color="secondary" variant="outlined" onClick={debouncedGenerateTask}>Generate Tasks</Button>
-                                                        <Divider sx={{ paddingTop: 1, marginBottom: 2 }} />
-                                                        {
-                                                            taskList.length === 0 ? (
-                                                                <Typography>No tasks were found</Typography>
-                                                            ) : (
-                                                                <>
-                                                                    <Typography>Tasks:</Typography>
-                                                                    <TaskList taskList={taskList} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh}/>
-                                                                </>
-                                                            )
-                                                        }
+                                                        <TaskList taskList={taskList} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
                                                     </TabPanel>
                                                     <TabPanel value={2}>
                                                         <Typography sx={{ paddingBottom: 1 }}>The Automatic Investigation System is a system of AI trained to perform operations to analyze security incidents and generate meaningful analysis suited for SOC.</Typography>

@@ -208,7 +208,7 @@ export const TaskGenerationTrainerDashboard = () => {
             }
             <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    Train on custom data
+                    Model training
                 </AccordionSummary>
                 <AccordionDetails>
                     <Accordion>
@@ -240,27 +240,27 @@ export const TaskGenerationTrainerDashboard = () => {
                         <AccordionDetails>
                             <Box>
                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Seed:</Typography>
-                                <TextField size="small" value={seed} onInput={(e) => setSeed(+e.target.value)} />
+                                <TextField size="small" type="number" value={seed} onInput={(e) => setSeed(e.target.value)} />
                             </Box>
                             <br />
                             <Box>
                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Max steps:</Typography>
-                                <TextField size="small" value={maxSteps} onInput={(e) => setMaxSteps(+e.target.value)} />
+                                <TextField size="small" type="number" value={maxSteps} onInput={(e) => setMaxSteps(e.target.value)} />
                             </Box>
                             <br />
                             <Box>
                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Learning Rate:</Typography>
-                                <TextField size="small" value={learningRate} onInput={(e) => setLearningRate(+e.target.value)} />
+                                <TextField size="small" type="number" value={learningRate} onInput={(e) => setLearningRate(e.target.value)} />
                             </Box>
                             <br />
                             <Box>
                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Gradient Accumulation Steps:</Typography>
-                                <TextField size="small" value={gradientAccumulationSteps} onInput={(e) => setGradientAccumulationSteps(+e.target.value)} />
+                                <TextField size="small" type="number" value={gradientAccumulationSteps} onInput={(e) => setGradientAccumulationSteps(e.target.value)} />
                             </Box>
                             <br />
                             <Box>
                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Weight Decay:</Typography>
-                                <TextField size="small" value={weightDecay} onInput={(e) => setWeightDecay(+e.target.value)} />
+                                <TextField size="small" type="number" value={weightDecay} onInput={(e) => setWeightDecay(e.target.value)} />
                             </Box>
                             <br />
                         </AccordionDetails>
@@ -273,7 +273,7 @@ export const TaskGenerationTrainerDashboard = () => {
             </Accordion>
             <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    Reset baseline model
+                    Load baseline model
                 </AccordionSummary>
                 <AccordionDetails>
                     <Typography>By clicking the button below, you will reset your model to the pre-trained state.</Typography>
