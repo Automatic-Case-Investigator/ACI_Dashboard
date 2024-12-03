@@ -158,9 +158,9 @@ export const CasePage = () => {
                                                 <TabContext value={currentTab}>
                                                     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                                         <TabList indicatorColor="secondary" onChange={(_, newValue) => { setCurrentTab(newValue) }} aria-label="lab API tabs example">
-                                                            <Tab label="General" value={0} />
-                                                            <Tab label="Tasks" value={1} />
-                                                            <Tab label="Automatic Investigation" value={2} />
+                                                            <Tab label="General" value={0} disableRipple />
+                                                            <Tab label="Tasks" value={1} disableRipple />
+                                                            <Tab label="Automatic Investigation" value={2} disableRipple />
                                                         </TabList>
                                                     </Box>
                                                     <TabPanel value={0}><MarkdownPreview source={caseData.description} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main }} /></TabPanel>

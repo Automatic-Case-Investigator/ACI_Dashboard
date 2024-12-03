@@ -137,32 +137,29 @@ export const Jobs = () => {
                     <ConfirmationDialog onCancel={() => { setConfirmDialogOpen(false) }} onContinue={() => { executeUpcomingAction(); setConfirmDialogOpen(false) }} />
                 </Dialog>
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                        <Typography sx={{ display: "inline-block", width: "50vw", marginBottom: 2 }}>List of invoked jobs:</Typography>
-                        <Box>
-                            {
-                                selectionModel.length > 0 && (
+                    <Box sx={{ float: "right" }}>
+                        {
+                            selectionModel.length > 0 && (
 
-                                    <Tooltip title="Delete Selection">
-                                        <IconButton onClick={() => {
-                                            scheduleUpcomingAction(handleJobMassDelete)
-                                            setConfirmDialogOpen(true)
-                                        }}>
-                                            <DeleteIcon style={{ color: red[500] }} />
-                                        </IconButton>
-                                    </Tooltip>
-                                )
-                            }
-                            <Tooltip title="Refresh">
-                                <IconButton onClick={getJobList}>
-                                    <RefreshIcon />
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
+                                <Tooltip title="Delete Selection">
+                                    <IconButton onClick={() => {
+                                        scheduleUpcomingAction(handleJobMassDelete)
+                                        setConfirmDialogOpen(true)
+                                    }}>
+                                        <DeleteIcon style={{ color: red[500] }} />
+                                    </IconButton>
+                                </Tooltip>
+                            )
+                        }
+                        <Tooltip title="Refresh">
+                            <IconButton onClick={getJobList}>
+                                <RefreshIcon />
+                            </IconButton>
+                        </Tooltip>
                     </Box>
                     {
                         errorMessage.length === 0 ? (
-                            <Paper sx={{ height: 600, width: "calc(100vw - 125px)" }}>
+                            <Paper sx={{ height: 600, width: "calc(100vw - 125px)", marginTop: 5 }}>
                                 <DataGrid
                                     rows={jobList}
                                     columns={columns}

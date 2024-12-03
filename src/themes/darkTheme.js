@@ -2,6 +2,9 @@ import { createTheme } from "@mui/material";
 
 export const darkTheme = createTheme({
     type: "dark",
+    shape: {
+        borderRadius: 0,
+    },
     palette: {
         mode: "dark",
         background: {
@@ -27,18 +30,15 @@ export const darkTheme = createTheme({
         MuiCssBaseline: {
             styleOverrides: {
                 body: {
-                    scrollbarColor: "#ffffff33 #ffffff11",
+                    scrollbarColor: "#CCCCFF33 #CCCCFF11",
                     "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
-                        backgroundColor: "#ffffff11",
+                        backgroundColor: "#CCCCFF11",
                     },
                     "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
-                        borderRadius: 8,
-                        backgroundColor: "#ffffff33",
-                        minHeight: 24,
-                        border: "3px solid #ffffff11",
+                        backgroundColor: "#CCCCFF33",
                     },
                     "&::-webkit-scrollbar-corner, & *::-webkit-scrollbar-corner": {
-                        backgroundColor: "#ffffff11",
+                        backgroundColor: "#CCCCFF11",
                     },
                 },
             }
@@ -47,15 +47,27 @@ export const darkTheme = createTheme({
             styleOverrides: {
                 root: {
                     borderRadius: 0,
+                    transition: "50ms ease-out 50ms",
                 },
             },
+        },
+        MuiTextField: {
+            styleOverrides: {
+                root: {
+                    '& input[type="number"]::-webkit-inner-spin-button, & input[type="number"]::-webkit-outer-spin-button': {
+                        WebkitAppearance: 'none',
+                        margin: 0,
+                    },
+                }
+            }
         },
         MuiIconButton: {
             styleOverrides: {
                 root: {
                     color: '#FFFFFF',
+                    transition: "50ms ease-out 50ms",
                     '&:hover': {
-                        backgroundColor: '#FFFFFF22'
+                        backgroundColor: '#CCCCFF33'
                     },
                 },
             },
@@ -73,6 +85,20 @@ export const darkTheme = createTheme({
                     border: "none",
                     backgroundColor: '#172549',
                     color: '#FFFFFF'
+                },
+            }
+        },
+        MuiTabs: {
+            styleOverrides: {
+                indicator: {
+                    transition: "all 200ms ease",
+                },
+            }
+        },
+        MuiTooltip: {
+            styleOverrides: {
+                tooltip: {
+                    backgroundColor: '#444466',
                 },
             }
         },
@@ -99,7 +125,8 @@ export const darkTheme = createTheme({
         MuiAccordionSummary: {
             styleOverrides: {
                 root: {
-                    backgroundColor: "#8888FF08"
+                    backgroundColor: "#8888FF08",
+                    border: 0
                 },
             },
         },
