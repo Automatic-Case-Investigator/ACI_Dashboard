@@ -9,7 +9,7 @@ export const darkTheme = createTheme({
         mode: "dark",
         background: {
             default: "#12192d",
-            paper: '#8888FF08'
+            paper: '#161c33'
         },
         primary: {
             main: "#FFFFFF"
@@ -83,7 +83,7 @@ export const darkTheme = createTheme({
             styleOverrides: {
                 paper: {
                     border: "none",
-                    backgroundColor: '#172549',
+                    backgroundColor: '#161c33',
                     color: '#FFFFFF'
                 },
             }
