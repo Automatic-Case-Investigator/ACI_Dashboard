@@ -37,8 +37,8 @@ export const EditSOARInfoDialog = ({ selectedSoarData, onClose, onSave }) => {
                 <TextField fullWidth value={currentAPIKey} onInput={(e) => { setCurrentAPIKey(e.target.value) }}></TextField>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
-                <Button onClick={() => {
+                <Button color="warning" onClick={onClose}>Cancel</Button>
+                <Button color="info" onClick={() => {
                     onSave({
                         id: selectedSoarData ? selectedSoarData.id : -1,
                         name: currentName,

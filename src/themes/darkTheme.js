@@ -8,8 +8,7 @@ export const darkTheme = createTheme({
     palette: {
         mode: "dark",
         background: {
-            default: "#12192d",
-            paper: '#8888FF08'
+            default: "#12192d"
         },
         primary: {
             main: "#FFFFFF"
@@ -43,6 +42,14 @@ export const darkTheme = createTheme({
                 },
             }
         },
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    backdropFilter: 'blur(14px)',
+                    backgroundColor: '#0000ff02',
+                },
+            },
+        },
         MuiButton: {
             styleOverrides: {
                 root: {
@@ -75,7 +82,8 @@ export const darkTheme = createTheme({
         MuiAppBar: {
             styleOverrides: {
                 colorPrimary: {
-                    backgroundColor: "#172549"
+                    backgroundColor: "#0000ff10",
+                    backdropFilter: "blur(6px)"
                 }
             }
         },
@@ -83,8 +91,8 @@ export const darkTheme = createTheme({
             styleOverrides: {
                 paper: {
                     border: "none",
-                    backgroundColor: '#172549',
-                    color: '#FFFFFF'
+                    backgroundColor: "#6666ff10",
+                    backdropFilter: "blur(6px)"
                 },
             }
         },
@@ -125,8 +133,7 @@ export const darkTheme = createTheme({
         MuiAccordionSummary: {
             styleOverrides: {
                 root: {
-                    backgroundColor: "#8888FF08",
-                    border: 0
+                    backgroundColor: "#8888ff25",
                 },
             },
         },

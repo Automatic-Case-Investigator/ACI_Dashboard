@@ -37,7 +37,7 @@ export const NewSOARInfoDialog = ({ onClose, onCreate }) => {
                 <TextField fullWidth value={currentAPIKey} onInput={(e) => { setCurrentAPIKey(e.target.value) }}></TextField>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
+                <Button color="warning" onClick={onClose}>Cancel</Button>
                 <Button onClick={() => {
                     onCreate({
                         name: currentName,
@@ -46,7 +46,7 @@ export const NewSOARInfoDialog = ({ onClose, onCreate }) => {
                         apiKey: currentAPIKey
                     });
                     onClose()
-                }} autoFocus disabled={!urlPattern.test(currentURL)}>Save</Button>
+                }} autoFocus color="info" disabled={!urlPattern.test(currentURL)}>Save</Button>
             </DialogActions>
         </>
     );

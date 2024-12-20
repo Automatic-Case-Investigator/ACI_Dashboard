@@ -16,8 +16,8 @@ export const ConfirmationDialog = ({onCancel, onContinue}) => {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onCancel}>Cancel</Button>
-                <Button onClick={onContinue} autoFocus>
+                <Button color="warning" onClick={onCancel}>Cancel</Button>
+                <Button color="info" onClick={onContinue} autoFocus>
                     Continue
                 </Button>
             </DialogActions>

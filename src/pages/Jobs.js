@@ -159,7 +159,7 @@ export const Jobs = () => {
                     </Box>
                     {
                         errorMessage.length === 0 ? (
-                            <Paper sx={{ height: 600, width: "calc(100vw - 125px)", marginTop: 5 }}>
+                            <Paper sx={{ height: 600, width: "calc(100vw - 125px)", marginTop: 5.5 }}>
                                 <DataGrid
                                     rows={jobList}
                                     columns={columns}
