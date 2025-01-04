@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Divider, Snackbar, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Divider, IconButton, Paper, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks';
@@ -6,6 +6,9 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Accordion from '@mui/material/Accordion';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import RestoreIcon from '@mui/icons-material/Restore';
+import DeleteIcon from "@mui/icons-material/Delete";
+import Pagination from '@mui/material/Pagination';
 
 export const TaskGenerationTrainerDashboard = () => {
     const [caseIds, setCaseIds] = useState([]);
@@ -13,6 +16,10 @@ export const TaskGenerationTrainerDashboard = () => {
     const [caseDataForest, setCaseDataForest] = useState([]);
     const [overallErrorMessage, setOverallErrorMessage] = useState("");
     const [selectedItems, setSelectedItems] = useState([]);
+    const [backupHistoryPageNumber, setBackupHistoryPageNumber] = useState(1);
+    const [backupHistory, setBackupHistory] = useState([]);
+    const [backupHistoryCount, setBackupHistoryCount] = useState(0);
+
     const toggledItemRef = useRef({});
     const apiRef = useTreeViewApiRef();
     const [targetSOAR, setTargetSOAR] = useState(() => {
@@ -184,9 +191,77 @@ export const TaskGenerationTrainerDashboard = () => {
         }
     }
 
+    const getBackupHistory = async (pageNumber) => {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/history/?page=${pageNumber}`);
+        const rawData = await response.json();
+        const pageSize = 10;
+        if (rawData.message && rawData.message === "Success") {
+            const entriesRemaining = rawData.total_count % pageSize;
+            setBackupHistory(rawData.entries);
+            if (entriesRemaining) {
+                setBackupHistoryCount(Math.floor(rawData.total_count / 10) + 1)
+            } else {
+                setBackupHistoryCount(Math.floor(rawData.total_count / 10))
+            }
+            
+        }
+    }
+
+    const backupModel = async () => {
+        setSnackbarMessage("Creating a backup of the current model");
+        setSnackbarSuccessful(true);
+        setSnackbarOpen(true);
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/backup/`, { method: "POST" });
+        const rawData = await response.json();
+        if (rawData.message) {
+            setSnackbarMessage("Backup successful");
+            setSnackbarSuccessful(true);
+            setSnackbarOpen(true);
+        }
+        getBackupHistory(backupHistoryPageNumber);
+    }
+
+    const rollbackToBackup = async (name) => {
+        setSnackbarMessage(`Rolling back to backup ${name}`);
+        setSnackbarSuccessful(true);
+        setSnackbarOpen(true);
+        const requestBody = new FormData()
+        requestBody.append("hash", name);
+
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/rollback/`, { method: "POST", body: requestBody });
+        const rawData = await response.json();
+        if (rawData.message) {
+            setSnackbarMessage("Successfully rolled back");
+            setSnackbarSuccessful(true);
+            setSnackbarOpen(true);
+        }
+        getBackupHistory(backupHistoryPageNumber);
+    }
+
+    const deleteBackup = async (name) => {
+        setSnackbarMessage("Deleting backup");
+        setSnackbarSuccessful(true);
+        setSnackbarOpen(true);
+        const requestBody = new FormData()
+        requestBody.append("hash", name);
+
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/backup/`, { method: "DELETE", body: requestBody });
+        const rawData = await response.json();
+        if (rawData.message) {
+            setSnackbarMessage("Deletion successful");
+            setSnackbarSuccessful(true);
+            setSnackbarOpen(true);
+        }
+        getBackupHistory(backupHistoryPageNumber);
+    }
+
     useEffect(() => {
         buildCaseDataForest();
     }, []);
+
+    useEffect(() => {
+        getBackupHistory(backupHistoryPageNumber);
+    }, [backupHistoryPageNumber]);
 
     return (
         <>
@@ -203,12 +278,9 @@ export const TaskGenerationTrainerDashboard = () => {
                 </Alert>
             </Snackbar>
             <Typography variant="h6">Task Generation</Typography>
-            {
-                overallErrorMessage && <Typography variant="body1">{overallErrorMessage}</Typography>
-            }
             <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    Model training
+                    Model Training
                 </AccordionSummary>
                 <AccordionDetails>
                     <Accordion>
@@ -273,10 +345,43 @@ export const TaskGenerationTrainerDashboard = () => {
             </Accordion>
             <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    Load baseline model
+                    Model Status
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Typography>By clicking the button below, you will reset your model to the pre-trained state.</Typography>
+                    <Typography>Backup history</Typography>
+                    {
+                        backupHistory.length === 0 ? (
+                            <Typography color="weak" sx={{ padding: 1, fontStyle: "italic" }}>The model does not have any backups</Typography>
+                        ) : (
+                            backupHistory.map((history, index) => (
+                                <Box key={index} sx={{ padding: 1, gap: 1, display: "flex", flexDirection: "column", maxHeight: 400, overflow: "scroll" }}>
+                                    <Paper sx={{ width: "100%", padding: 1, display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "none" }}>
+                                        <Box>
+                                            <Typography>{history.name}</Typography>
+                                            <Typography variant="body2" color="weak">{history.date_created}</Typography>
+                                        </Box>
+                                        <Box>
+                                            <Tooltip title="Rollback">
+                                                <IconButton onClick={() => {rollbackToBackup(history.name)}}>
+                                                    <RestoreIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Delete">
+                                                <IconButton onClick={() => {deleteBackup(history.name)}}>
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
+                                    </Paper>
+                                </Box>
+                            ))
+                        )
+                    }
+                    <Pagination color="secondary" sx={{ paddingBottom: 1 }} count={backupHistoryCount} page={backupHistoryPageNumber} onChange={(_, value) => { setBackupHistoryPageNumber(value) }} />
+                    <Button variant="outlined" color="secondary" size="small" onClick={backupModel}>Backup current model</Button>
+
+                    <Typography>Reset to baseline model</Typography>
+                    <Typography variant="body2" color="warning" sx={{ fontStyle: "italic" }}>By clicking the button below, you will reset your model to the pre-trained state.</Typography>
                     <Box sx={{ paddingTop: 1, display: "flex", gap: 1 }}>
                         <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Load baseline</Button>
                     </Box>
