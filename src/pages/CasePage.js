@@ -68,7 +68,7 @@ export const CasePage = () => {
         requestBody.append("case_id", caseId);
 
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `soar/task_generator/`,
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/generate/`,
             {
                 method: "POST",
                 body: requestBody
