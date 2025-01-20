@@ -1,0 +1,4 @@
+const CASE_PAGE_SIZE = 10;
+const BACKUP_PAGE_SIZE = 10;
+
+export { CASE_PAGE_SIZE, BACKUP_PAGE_SIZE }

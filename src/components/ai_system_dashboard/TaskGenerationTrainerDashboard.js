@@ -1,6 +1,7 @@
 import { Alert, Box, Button, Divider, IconButton, Paper, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
+import { BACKUP_PAGE_SIZE } from "../../constants/page-sizes";
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -18,7 +19,7 @@ export const TaskGenerationTrainerDashboard = () => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [backupHistoryPageNumber, setBackupHistoryPageNumber] = useState(1);
     const [backupHistory, setBackupHistory] = useState([]);
-    const [backupHistoryCount, setBackupHistoryCount] = useState(0);
+    const [backupHistoryPagesTotal, setBackupHistoryPagesTotal] = useState(0);
 
     const toggledItemRef = useRef({});
     const apiRef = useTreeViewApiRef();
@@ -194,16 +195,14 @@ export const TaskGenerationTrainerDashboard = () => {
     const getBackupHistory = async (pageNumber) => {
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/history/?page=${pageNumber}`);
         const rawData = await response.json();
-        const pageSize = 10;
         if (rawData.message && rawData.message === "Success") {
-            const entriesRemaining = rawData.total_count % pageSize;
+            const entriesRemaining = rawData.total_count % BACKUP_PAGE_SIZE;
             setBackupHistory(rawData.entries);
             if (entriesRemaining) {
-                setBackupHistoryCount(Math.floor(rawData.total_count / 10) + 1)
+                setBackupHistoryPagesTotal(Math.floor(rawData.total_count / BACKUP_PAGE_SIZE) + 1)
             } else {
-                setBackupHistoryCount(Math.floor(rawData.total_count / 10))
+                setBackupHistoryPagesTotal(Math.floor(rawData.total_count / BACKUP_PAGE_SIZE))
             }
-            
         }
     }
 
@@ -377,7 +376,7 @@ export const TaskGenerationTrainerDashboard = () => {
                             ))
                         )
                     }
-                    <Pagination color="secondary" sx={{ paddingBottom: 1 }} count={backupHistoryCount} page={backupHistoryPageNumber} onChange={(_, value) => { setBackupHistoryPageNumber(value) }} />
+                    <Pagination color="secondary" sx={{ paddingBottom: 1 }} count={backupHistoryPagesTotal} page={backupHistoryPageNumber} onChange={(_, value) => { setBackupHistoryPageNumber(value) }} />
                     <Button variant="outlined" color="secondary" size="small" onClick={backupModel}>Backup current model</Button>
 
                     <Typography>Reset to baseline model</Typography>
