@@ -1,7 +1,8 @@
-import { Box, Button, Divider, IconButton, Snackbar, Tooltip, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, Divider, IconButton, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { useNavigate, useParams } from "react-router-dom";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PuffLoader from "react-spinners/PuffLoader";
@@ -34,6 +35,10 @@ export const CasePage = () => {
         const initialValue = JSON.parse(saved);
         return initialValue || null;
     });
+
+    // automatic investigation states
+    const [enableActivityGeneration, setEnableActivityGeneration] = useState(true);
+    const [enableSIEMInvestigation, setEnableSIEMInvestigation] = useState(true);
 
     // component open states
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -90,6 +95,37 @@ export const CasePage = () => {
         }
     }
 
+    const investigateTask = async () => {
+        const requestBody = new FormData();
+        requestBody.append("soar_id", targetSOAR.id);
+        requestBody.append("org_id", orgId);
+        requestBody.append("case_id", caseId);
+        requestBody.append("generate_activities", enableActivityGeneration ? 1 : 0);
+        requestBody.append("investigate_siem", enableSIEMInvestigation ? 1 : 0);
+
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/automatic_investigation/investigate/`,
+            {
+                method: "POST",
+                body: requestBody
+            }
+        );
+        const rawData = await response.json();
+        if (rawData.message && rawData.message === "Success") {
+            setSnackbarMessage("Successfully created case investigation job. Check jobs page for details.");
+            setSnackbarSuccessful(true);
+            setSnackbarOpen(true);
+        } else if (rawData.error) {
+            setSnackbarMessage(rawData.error);
+            setSnackbarSuccessful(false);
+            setSnackbarOpen(true);
+        } else {
+            setSnackbarMessage("Failed communicating with the backend. contact administrators for help.");
+            setSnackbarSuccessful(false);
+            setSnackbarOpen(true);
+        }
+    }
+
     const refreshTasks = () => {
         getCaseData();
         getTaskList();
@@ -102,6 +138,7 @@ export const CasePage = () => {
     }
 
     const debouncedGenerateTask = debounce(generateTask, 300);
+    const debouncedInvestigateTask = debounce(investigateTask, 300);
 
     useEffect(() => {
         if (!targetSOAR) {
@@ -169,8 +206,38 @@ export const CasePage = () => {
                                                         <TaskList taskList={taskList} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
                                                     </TabPanel>
                                                     <TabPanel value={2}>
-                                                        <Typography sx={{ paddingBottom: 1 }}>The Automatic Investigation System is a system of AI trained to perform operations to analyze security incidents and generate meaningful analysis suited for SOC.</Typography>
-                                                        <Typography>Functionality coming soon</Typography>
+                                                        <Typography variant="h6">Options</Typography>
+                                                        <Accordion>
+                                                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                                                <Typography component="span">Activity Generation</Typography>
+                                                            </AccordionSummary>
+                                                            <AccordionDetails>
+                                                                <Typography color="weak" sx={{ fontStyle: "italic" }}>
+                                                                    This is responsible for generating detailed activities to be performed by analysts based on each tasks
+                                                                    present in the case.
+                                                                </Typography>
+                                                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Enable</Typography>
+                                                                <Checkbox sx={{ paddingLeft: 0 }} color="secondary" checked={enableActivityGeneration} onChange={() => setEnableActivityGeneration(!enableActivityGeneration)}/>
+                                                            </AccordionDetails>
+                                                        </Accordion>
+                                                        <Accordion>
+                                                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                                                <Typography component="span">SIEM investigation</Typography>
+                                                            </AccordionSummary>
+                                                            <AccordionDetails>
+                                                                <Typography color="weak" sx={{ fontStyle: "italic" }}>
+                                                                    (Not yet implemented) This is responsible for automatically querying the SIEM and correlating security events to perform
+                                                                    investigation. This must be used with activities existing in the case. This can be achieved by either
+                                                                    enabling the activity generation or manually writing down investigation activities.
+                                                                </Typography>
+                                                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Enable</Typography>
+                                                                <Checkbox sx={{ paddingLeft: 0 }} color="secondary" checked={enableSIEMInvestigation} onChange={() => setEnableSIEMInvestigation(!enableSIEMInvestigation)}/>
+                                                                <br />
+                                                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Search depth</Typography>
+                                                                <TextField size="small" type="number" />
+                                                            </AccordionDetails>
+                                                        </Accordion>
+                                                        <Button sx={{ marginTop: 1 }} size="small" color="secondary" variant="outlined" onClick={debouncedInvestigateTask}>Investigate</Button>
                                                     </TabPanel>
                                                 </TabContext>
                                             </>
