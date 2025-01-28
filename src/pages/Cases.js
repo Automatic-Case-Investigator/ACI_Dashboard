@@ -83,7 +83,7 @@ export const Cases = () => {
                                     getCases();
                                 }
                             }}
-                            sx={{ paddingRight: 1 }}
+                            sx={{ marginRight: 1 }}
                             fullWidth />
                         <IconButton onClick={getCases}>
                             <SearchIcon />

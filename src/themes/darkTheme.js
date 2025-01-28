@@ -65,6 +65,14 @@ export const darkTheme = createTheme({
                         WebkitAppearance: 'none',
                         margin: 0,
                     },
+                    backgroundColor: "rgba(255, 255, 255, 0.08)"
+                }
+            }
+        },
+        MuiSelect: {
+            styleOverrides: {
+                root: {
+                    backgroundColor: "rgba(255, 255, 255, 0.08)"
                 }
             }
         },
@@ -102,6 +110,17 @@ export const darkTheme = createTheme({
                     transition: "all 200ms ease",
                 },
             }
+        },
+        MuiTab: {
+            styleOverrides: {
+                root: {
+                    transition: 'background-color 0.1s, color 0.1s',
+                    '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        color: '#ffffff',
+                    },
+                },
+            },
         },
         MuiTooltip: {
             styleOverrides: {
