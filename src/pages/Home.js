@@ -1,8 +1,6 @@
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import CoffeeIcon from "@mui/icons-material/Coffee";
 import { Box, Typography } from "@mui/material";
-import Button from "@mui/material/Button";
 import { Helmet } from "react-helmet";
 
 
@@ -20,7 +18,11 @@ export const Home = () => {
                     <br />
                     <br />
                     <Typography variant="h3">Automatic Case Investigator</Typography>
-                    <Button color="secondary" variant="outlined" sx={{marginTop: 1}}><CoffeeIcon sx={{ mr: 1 }} />Buy me a coffee</Button>
+                    <br />
+                    <br />
+                    <br />
+                    <br />
+                    <Typography variant="body2">Made by acezxn</Typography>
                 </Box>
             </Box>
         </>

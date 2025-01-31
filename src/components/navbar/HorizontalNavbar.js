@@ -16,7 +16,7 @@ export const HorizontalNavbar = ({ names, routes }) => {
         <AppBar position="fixed" sx={{ display: "flex", justifyContent: "center", width: `calc(100% - ${drawerWidth}px)`, height: 50, marginLeft: drawerWidth }}>
             <Toolbar style={{ paddingRight: 16 }}>
                 <Box sx={{ flexGrow: 1 }}>
-                    <Breadcrumbs sx={{color: "secondary.main"}}>
+                    <Breadcrumbs sx={{ color: "secondary.main" }}>
                         {
                             names.map((name, index) => (
                                 <Link key={index} underline="hover" onClick={() => { navigate(routes[index]) }}>
@@ -28,7 +28,14 @@ export const HorizontalNavbar = ({ names, routes }) => {
                 </Box>
 
                 <Tooltip title="Settings">
-                    <IconButton edge="start" color="primary" onClick={() => { navigate("/settings") }}>
+                    <IconButton edge="start" color="primary" sx={{
+                        "& svg": {
+                            transition: "transform 0.3s ease-in-out",
+                        },
+                        "&:hover svg": {
+                            transform: "rotate(90deg)",
+                        },
+                    }} onClick={() => { navigate("/settings") }}>
                         <SettingsIcon />
                     </IconButton>
                 </Tooltip>

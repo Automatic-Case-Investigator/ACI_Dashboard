@@ -26,6 +26,7 @@
     "react-scripts": "5.0.1",
     "react-spinners": "^0.14.1",
     "remark-gfm": "^1.0.0",
+    "util": "^0.12.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

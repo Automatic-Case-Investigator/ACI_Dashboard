@@ -3,12 +3,12 @@ import { createTheme } from "@mui/material";
 export const darkTheme = createTheme({
     type: "dark",
     shape: {
-        borderRadius: 0,
+        borderRadius: 4,
     },
     palette: {
         mode: "dark",
         background: {
-            default: "#12192d"
+            default: "#0D0D10"
         },
         primary: {
             main: "#FFFFFF"
@@ -45,15 +45,14 @@ export const darkTheme = createTheme({
         MuiPaper: {
             styleOverrides: {
                 root: {
-                    backdropFilter: 'blur(14px)',
-                    backgroundColor: '#0000ff02',
+                    backdropFilter: 'blur(8px)',
+                    backgroundColor: '#CCCCFF05',
                 },
             },
         },
         MuiButton: {
             styleOverrides: {
                 root: {
-                    borderRadius: 0,
                     transition: "50ms ease-out 50ms",
                 },
             },
@@ -65,14 +64,22 @@ export const darkTheme = createTheme({
                         WebkitAppearance: 'none',
                         margin: 0,
                     },
-                    backgroundColor: "rgba(255, 255, 255, 0.08)"
+                    backgroundColor: "#CCCCFF05",
+                    '&:hover': {
+                        boxShadow: `0 0 5px 0 rgba(120,120,255,1)`,
+                        borderColor: "rgba(0,255,234,1)",
+                    },
                 }
             }
         },
         MuiSelect: {
             styleOverrides: {
                 root: {
-                    backgroundColor: "rgba(255, 255, 255, 0.08)"
+                    backgroundColor: "#CCCCFF05",
+                    '&:hover': {
+                        boxShadow: `0 0 5px 0 rgba(120,120,255,1)`,
+                        borderColor: "rgba(0,255,234,1)",
+                    },
                 }
             }
         },
@@ -143,6 +150,7 @@ export const darkTheme = createTheme({
                 root: {
                     backgroundColor: '#CCCCFF11',
                     transition: "50ms ease-out 50ms",
+                    backdropFilter: "blur(6px)",
                     '&:hover': {
                         backgroundColor: '#CCCCFF33',
                     },
@@ -152,7 +160,7 @@ export const darkTheme = createTheme({
         MuiAccordionSummary: {
             styleOverrides: {
                 root: {
-                    backgroundColor: "#8888ff25",
+                    backgroundColor: "#8888ff20",
                 },
             },
         },

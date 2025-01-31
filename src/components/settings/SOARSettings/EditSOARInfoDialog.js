@@ -19,9 +19,9 @@ export const EditSOARInfoDialog = ({ selectedSoarData, onClose, onSave }) => {
             </DialogTitle>
             <DialogContent>
                 <Typography>Name</Typography>
-                <TextField fullWidth value={currentName} onInput={(e) => { setCurrentName(e.target.value) }}></TextField>
+                <TextField size="small" fullWidth value={currentName} onInput={(e) => { setCurrentName(e.target.value) }}></TextField>
                 <Typography>Type</Typography>
-                <Select value={currentType} onChange={(e) => { setCurrentType(e.target.value) }} fullWidth>
+                <Select size="small" value={currentType} onChange={(e) => { setCurrentType(e.target.value) }} fullWidth>
                     {
                         Object.values(SOAR_CHOICES).map((soarType) => {
                             return <MenuItem value={soarType}>{soarType}</MenuItem>
@@ -29,12 +29,12 @@ export const EditSOARInfoDialog = ({ selectedSoarData, onClose, onSave }) => {
                     }
                 </Select>
                 <Typography>URL</Typography>
-                <TextField fullWidth type="url" value={currentURL} onInput={(e) => { setCurrentURL(e.target.value) }}></TextField>
+                <TextField size="small" fullWidth type="url" value={currentURL} onInput={(e) => { setCurrentURL(e.target.value) }}></TextField>
                 {
                     !urlPattern.test(currentURL) && <Typography color="error.main">Invalid URL</Typography>
                 }
                 <Typography>API Key</Typography>
-                <TextField fullWidth value={currentAPIKey} onInput={(e) => { setCurrentAPIKey(e.target.value) }}></TextField>
+                <TextField size="small" fullWidth value={currentAPIKey} onInput={(e) => { setCurrentAPIKey(e.target.value) }}></TextField>
             </DialogContent>
             <DialogActions>
                 <Button color="warning" onClick={onClose}>Cancel</Button>
