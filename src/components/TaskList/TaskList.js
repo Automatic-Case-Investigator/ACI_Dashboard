@@ -29,15 +29,15 @@ export const TaskList = ({ taskList, soarId, orgId, caseId, onRefresh }) => {
 
     const navigate = useNavigate();
     const columns = [
-        { field: "id", type: "string", headerName: "ID", width: 150 },
-        { field: "title", type: "string", headerName: "Title", width: 350 },
-        { field: "group", type: "string", headerName: "Group", width: 300 },
-        { field: "createdAt", type: "dateTime", headerName: "Created At", width: 300 },
-        { field: "createdBy", type: "string", headerName: "Created By", width: 200 },
+        { field: "id", type: "string", headerName: "ID", flex: 0.2 },
+        { field: "title", type: "string", headerName: "Title", flex: 0.6 },
+        { field: "group", type: "string", headerName: "Group", flex: 0.4 },
+        { field: "createdAt", type: "dateTime", headerName: "Created At", flex: 0.4 },
+        { field: "createdBy", type: "string", headerName: "Created By", flex: 0.3 },
         {
             field: "actions",
             type: "actions",
-            width: 150,
+            flex: 0.3,
             renderCell: (params) => (
                 <>
                     <Tooltip title="View">

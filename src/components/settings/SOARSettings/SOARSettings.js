@@ -183,13 +183,13 @@ export const SOARSettings = () => {
 
     const paginationModel = { page: 0, pageSize: 5 };
     const columns = [
-        { field: "id", type: "number", headerName: "ID", width: 70 },
-        { field: "name", type: "string", headerName: "Name", width: 200 },
-        { field: "type", type: "string", headerName: "Type", width: 150 },
-        { field: "url", type: "string", headerName: "URL", width: 300 },
-        { field: "apiKey", type: "string", headerName: "API Key", width: 400 },
+        { field: "id", type: "number", headerName: "ID", flex: 0.1 },
+        { field: "name", type: "string", headerName: "Name", flex: 0.6 },
+        { field: "type", type: "string", headerName: "Type", flex: 0.3 },
+        { field: "url", type: "string", headerName: "URL", flex: 0.6 },
+        { field: "apiKey", type: "string", headerName: "API Key", flex: 0.6 },
         {
-            field: "isTarget", type: "boolean", headerName: "Is Target", width: 150,
+            field: "isTarget", type: "boolean", headerName: "Is Target", flex: 0.2,
             renderCell: (params) => (
                 params.value ? (
                     <CheckIcon style={{ color: green[500] }} />
@@ -201,7 +201,7 @@ export const SOARSettings = () => {
         {
             field: "actions",
             type: "actions",
-            width: 150,
+            flex: 0.4,
             renderCell: (params) => (
                 <>
                     <Tooltip title="Set Target">

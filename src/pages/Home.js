@@ -18,11 +18,7 @@ export const Home = () => {
                     <br />
                     <br />
                     <Typography variant="h3">Automatic Case Investigator</Typography>
-                    <br />
-                    <br />
-                    <br />
-                    <br />
-                    <Typography variant="body2">Made by acezxn</Typography>
+                    <Typography variant="body2">Made by acezxn with ♥️</Typography>
                 </Box>
             </Box>
         </>

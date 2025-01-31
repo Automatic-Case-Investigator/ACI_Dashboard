@@ -18,14 +18,14 @@ export const Jobs = () => {
     const [upcomingAction, setUpcomingAction] = useState({});
 
     const columns = [
-        { field: "id", type: "string", headerName: "ID", width: 300 },
-        { field: "status", type: "string", headerName: "Status", width: 120 },
-        { field: "result", type: "string", headerName: "Result", width: 120 },
-        { field: "createdAt", type: "dateTime", headerName: "Created At", width: 250 },
-        { field: "finishedAt", type: "dateTime", headerName: "Finished At", width: 250 },
-        { field: "elapsedTime", type: "string", headerName: "Elapsed Time (seconds)", width: 300 },
+        { field: "id", type: "string", headerName: "ID", flex: 0.5 },
+        { field: "status", type: "string", headerName: "Status", flex: 0.3 },
+        { field: "result", type: "string", headerName: "Result", flex: 0.3 },
+        { field: "createdAt", type: "dateTime", headerName: "Created At", flex: 0.4 },
+        { field: "finishedAt", type: "dateTime", headerName: "Finished At", flex: 0.4 },
+        { field: "elapsedTime", type: "string", headerName: "Elapsed Time (seconds)", flex: 0.3 },
         {
-            field: "actions", type: "actions", headerName: "Actions", width: 100,
+            field: "actions", type: "actions", headerName: "Actions", flex: 0.2,
             renderCell: (params) => (
                 <>
                     <Tooltip title="Delete">
