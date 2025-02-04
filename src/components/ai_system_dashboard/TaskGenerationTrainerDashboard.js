@@ -11,11 +11,14 @@ import RestoreIcon from '@mui/icons-material/Restore';
 import DeleteIcon from "@mui/icons-material/Delete";
 import Pagination from '@mui/material/Pagination';
 
-export const TaskGenerationTrainerDashboard = () => {
-    const [caseIds, setCaseIds] = useState([]);
-    const [caseOrgIds, setCaseOrgIds] = useState({});
-    const [caseDataForest, setCaseDataForest] = useState([]);
-    const [overallErrorMessage, setOverallErrorMessage] = useState("");
+/**
+ * A dashboard for managing the task generation model
+ * @param {object} props
+ * @property caseIds        - an array of case ids
+ * @property caseOrdIds     - a dictionary that maps a case id to an org id
+ * @property caseDataForest - a list of objects containing the organization and case information
+ */
+export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataForest}) => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [backupHistoryPageNumber, setBackupHistoryPageNumber] = useState(1);
     const [backupHistory, setBackupHistory] = useState([]);
@@ -84,48 +87,6 @@ export const TaskGenerationTrainerDashboard = () => {
 
         toggledItemRef.current = {};
     };
-
-    const buildCaseDataForest = async () => {
-        const orgsResponse = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/organizations/?soar_id=${targetSOAR.id}`);
-        const orgsRawData = await orgsResponse.json();
-        let updatedCaseDataForest = [];
-        let fetchedCaseIds = [];
-        let updatedCaseOrgIds = {};
-
-        if (orgsRawData["error"]) {
-            setOverallErrorMessage(orgsRawData["error"])
-            return;
-        }
-
-        for (let org of orgsRawData["organizations"]) {
-            updatedCaseDataForest.push({
-                id: org.id,
-                label: `${org.name} (${org.id})`,
-                children: [],
-            });
-            const casesResponse = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&org_id=${org.id}`);
-            const casesRawData = await casesResponse.json();
-
-            if (casesRawData["error"]) {
-                setOverallErrorMessage(casesRawData["error"]);
-                return;
-            }
-            updatedCaseDataForest[updatedCaseDataForest.length - 1].children = casesRawData["cases"].map((caseData) => ({
-                id: caseData.id,
-                label: `${caseData.title} (${caseData.id})`,
-                title: caseData.title,
-                description: caseData.description
-            }));
-
-            for (let caseData of casesRawData["cases"]) {
-                fetchedCaseIds.push(caseData.id);
-                updatedCaseOrgIds[caseData.id] = org.id;
-            }
-        }
-        setCaseIds(fetchedCaseIds);
-        setCaseOrgIds(updatedCaseOrgIds);
-        setCaseDataForest(updatedCaseDataForest);
-    }
 
     const trainModel = async () => {
         for (let id of selectedItems) {
@@ -255,15 +216,11 @@ export const TaskGenerationTrainerDashboard = () => {
     }
 
     useEffect(() => {
-        buildCaseDataForest();
-    }, []);
-
-    useEffect(() => {
         getBackupHistory(backupHistoryPageNumber);
     }, [backupHistoryPageNumber]);
 
     return (
-        <>
+        <Box>
             <Snackbar
                 open={snackbarOpen}
                 autoHideDuration={5000}
@@ -386,6 +343,6 @@ export const TaskGenerationTrainerDashboard = () => {
                     </Box>
                 </AccordionDetails>
             </Accordion>
-        </>
+        </Box>
     )
 }
