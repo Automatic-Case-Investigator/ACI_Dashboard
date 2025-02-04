@@ -1,4 +1,4 @@
-import { Box, IconButton, List, ListItem, ListItemIcon, ListItemText, Pagination, TextField, Typography } from "@mui/material";
+import { Box, IconButton, InputLabel, List, ListItem, ListItemIcon, ListItemText, MenuItem, OutlinedInput, Pagination, Select, TextField, Typography } from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { useNavigate, useParams } from "react-router-dom";
@@ -9,7 +9,10 @@ import WorkIcon from '@mui/icons-material/Work';
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 
-
+const sortTypeMap = {
+    0: "Creation Time Z-A", // descending order of creation time
+    1: "Creation Time A-Z", // ascending order of creation time
+}
 
 export const Cases = () => {
     const { orgId } = useParams();
@@ -21,6 +24,7 @@ export const Cases = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
     const [searchString, setSearchString] = useState("");
+    const [sortType, setSortType] = useState(Object.keys(sortTypeMap)[0]);
     const [targetSOAR, setTargetSOAR] = useState(() => {
         const saved = localStorage.getItem("targetSOAR");
         const initialValue = JSON.parse(saved);
@@ -34,6 +38,7 @@ export const Cases = () => {
         if (searchString.length > 0) {
             queryURL += `&search=${searchString}`;
         }
+        queryURL += `&time_sort_type=${sortType}`;
         const response = await fetch(queryURL);
         const rawData = await response.json();
 
@@ -85,6 +90,19 @@ export const Cases = () => {
                             }}
                             sx={{ marginRight: 1 }}
                             fullWidth />
+                        <Select
+                            size="small"
+                            value={sortType}
+                            onChange={(e) => setSortType(e.target.value)}
+                            sx={{ width: 200 }}>
+                            {
+                                Object.keys(sortTypeMap).map((key, _) => (
+                                    <MenuItem key={key} value={key}>
+                                        {sortTypeMap[key]}
+                                    </MenuItem>
+                                ))
+                            }
+                        </Select>
                         <IconButton onClick={getCases}>
                             <SearchIcon />
                         </IconButton>
