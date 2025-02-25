@@ -23,6 +23,7 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
     const [backupHistoryPageNumber, setBackupHistoryPageNumber] = useState(1);
     const [backupHistory, setBackupHistory] = useState([]);
     const [backupHistoryPagesTotal, setBackupHistoryPagesTotal] = useState(0);
+    const [currentVersion, setCurrentVersion] = useState("");
 
     const toggledItemRef = useRef({});
     const apiRef = useTreeViewApiRef();
@@ -178,7 +179,7 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
             setSnackbarSuccessful(true);
             setSnackbarOpen(true);
         }
-        getBackupHistory(backupHistoryPageNumber);
+        refresh();
     }
 
     const rollbackToBackup = async (name) => {
@@ -195,7 +196,15 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
             setSnackbarSuccessful(true);
             setSnackbarOpen(true);
         }
-        getBackupHistory(backupHistoryPageNumber);
+        refresh();
+    }
+
+    const getCurrentVersion = async () => {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/current_backup_version`);
+        const rawData = await response.json();
+        if (rawData["message"] && rawData["message"] == "Success") {
+            setCurrentVersion(rawData.name);
+        }
     }
 
     const deleteBackup = async (name) => {
@@ -212,8 +221,18 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
             setSnackbarSuccessful(true);
             setSnackbarOpen(true);
         }
-        getBackupHistory(backupHistoryPageNumber);
+        
+        refresh();
     }
+
+    const refresh = () => {
+        getBackupHistory(backupHistoryPageNumber);
+        getCurrentVersion();
+    }
+
+    useEffect(() => {
+        getCurrentVersion();
+    }, []);
 
     useEffect(() => {
         getBackupHistory(backupHistoryPageNumber);
@@ -313,7 +332,7 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
                                 <Box key={index} sx={{ padding: 1, gap: 1, display: "flex", flexDirection: "column", maxHeight: 400, overflow: "scroll" }}>
                                     <Paper sx={{ width: "100%", padding: 1, display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "none" }}>
                                         <Box>
-                                            <Typography>{history.name}</Typography>
+                                            <Typography>{history.name === currentVersion ? `${history.name} (current)` : history.name}</Typography>
                                             <Typography variant="body2" color="weak">{history.date_created}</Typography>
                                         </Box>
                                         <Box>
