@@ -6,6 +6,7 @@ import { TaskGenerationTrainerDashboard } from "../components/ai_system_dashboar
 import { useEffect, useState } from "react";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { ActivityGenerationTrainerDashboard } from "../components/ai_system_dashboard/ActivityGenerationTrainerDashboard";
+import { QueryGenerationTrainerDashboard } from "../components/ai_system_dashboard/QueryGenerationTrainerDashboard";
 
 
 export const AISystems = () => {
@@ -107,6 +108,7 @@ export const AISystems = () => {
                     </Box>
                     <TaskGenerationTrainerDashboard caseIds={caseIds} caseOrgIds={caseOrgIds} caseDataForest={caseDataForest} />
                     <ActivityGenerationTrainerDashboard caseIds={caseIds} caseOrgIds={caseOrgIds} caseDataForest={caseDataForest} />
+                    <QueryGenerationTrainerDashboard caseIds={caseIds} caseOrgIds={caseOrgIds} caseDataForest={caseDataForest} />
                 </Box>
             </Box>
         </>
