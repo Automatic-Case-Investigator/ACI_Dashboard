@@ -6,7 +6,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PuffLoader from "react-spinners/PuffLoader";
-import { TaskList } from "../components/TaskList/TaskList";
+import { TaskList } from "../components/task_list/TaskList";
 import { darkTheme } from "../themes/darkTheme";
 import TabContext from '@mui/lab/TabContext';
 import { useEffect, useState } from "react";
