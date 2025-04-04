@@ -4,6 +4,7 @@ import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { Box, Typography } from "@mui/material";
 import { SOARSettings } from "../components/settings/SOARSettings/SOARSettings";
 import { Helmet } from "react-helmet";
+import { SIEMSettings } from "../components/settings/SOARSettings/SIEMSettings";
 
 export const Settings = () => {
     return (
@@ -16,6 +17,8 @@ export const Settings = () => {
                 <VerticalNavbar />
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5, width: 'calc(100vw - 200px)' }}>
                     <SOARSettings />
+                    <Box sx={{ m: 2 }} />
+                    <SIEMSettings />
                 </Box>
             </Box>
         </>

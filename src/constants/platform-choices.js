@@ -2,4 +2,8 @@ const SOAR_CHOICES = {
     "TH": "The Hive"
 }
 
-export { SOAR_CHOICES }
+const SIEM_CHOICES = {
+    "WZ": "Wazuh"
+}
+
+export { SOAR_CHOICES, SIEM_CHOICES }

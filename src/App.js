@@ -14,6 +14,7 @@ import { Cases } from "./pages/Cases";
 import { CasePage } from "./pages/CasePage";
 import { darkTheme } from "./themes/darkTheme";
 import { TaskPage } from "./pages/TaskPage";
+import { Login } from "./pages/Login";
 
 
 
@@ -24,6 +25,7 @@ function App() {
             <Router>
                 <Routes>
                     <Route path="/" element={<Home />}></Route>
+                    {/* <Route path="/login" element={<Login />}></Route> */}
                     <Route path="/settings" element={<Settings />}></Route>
                     <Route path="/organizations" element={<Organizations />}></Route>
                     <Route path="/organizations/:orgId/cases" element={<Cases />} />
