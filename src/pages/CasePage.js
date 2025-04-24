@@ -35,6 +35,11 @@ export const CasePage = () => {
         const initialValue = JSON.parse(saved);
         return initialValue || null;
     });
+    const [targetSIEM, setTargetSIEM] = useState(() => {
+        const saved = localStorage.getItem("targetSIEM");
+        const initialValue = JSON.parse(saved);
+        return initialValue || null;
+    });
 
     // automatic investigation states
     const [enableActivityGeneration, setEnableActivityGeneration] = useState(true);
@@ -97,6 +102,7 @@ export const CasePage = () => {
 
     const investigateTask = async () => {
         const requestBody = new FormData();
+        requestBody.append("siem_id", targetSIEM.id);
         requestBody.append("soar_id", targetSOAR.id);
         requestBody.append("org_id", orgId);
         requestBody.append("case_id", caseId);
