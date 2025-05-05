@@ -1,7 +1,7 @@
 import { Button, Drawer, Menu, MenuItem, Stack, Tooltip } from "@mui/material"
 import { makeStyles } from '@mui/styles';
 import { useNavigate } from "react-router-dom";
-import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
+import TokenIcon from '@mui/icons-material/Token';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import MemoryIcon from '@mui/icons-material/Memory';
@@ -58,7 +58,7 @@ export const VerticalNavbar = () => {
                     </Tooltip>
                     <Tooltip title="AI systems" placement="right">
                         <Button sx={{ height: 50 }} fullWidth onClick={() => { navigate("/ai-systems") }}>
-                            <PrecisionManufacturingIcon />
+                            <TokenIcon />
                         </Button>
                     </Tooltip>
                     <Tooltip title="Jobs" placement="right">

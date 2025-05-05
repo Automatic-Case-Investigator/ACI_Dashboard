@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Divider, IconButton, Paper, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
+import { Alert, Box, Button, IconButton, Paper, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
 import { BACKUP_PAGE_SIZE } from "../../constants/page-sizes";
@@ -10,6 +10,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import RestoreIcon from '@mui/icons-material/Restore';
 import DeleteIcon from "@mui/icons-material/Delete";
 import Pagination from '@mui/material/Pagination';
+import { TaskGenModelSelect } from "./modals/TaskGenModelSelect";
+import { INFO } from "../../constants/model-info";
 
 /**
  * A dashboard for managing the task generation model
@@ -18,9 +20,10 @@ import Pagination from '@mui/material/Pagination';
  * @property caseOrdIds     - a dictionary that maps a case id to an org id
  * @property caseDataForest - a list of objects containing the organization and case information
  */
-export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataForest}) => {
+export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataForest }) => {
     const [selectedItems, setSelectedItems] = useState([]);
-    const [backupHistoryPageNumber, setBackupHistoryPageNumber] = useState(1);
+    const [selectedModelIdx, setSelectedModelIdx] = useState(1);
+    const [backupHistoryPageNumber, setBackupHistoryPageNumber] = useState(0);
     const [backupHistory, setBackupHistory] = useState([]);
     const [backupHistoryPagesTotal, setBackupHistoryPagesTotal] = useState(0);
     const [currentVersion, setCurrentVersion] = useState("");
@@ -44,6 +47,9 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarSuccessful, setSnackbarSuccessful] = useState(true);
     const [snackbarMessage, setSnackbarMessage] = useState("");
+
+    // modal states
+    const [modelSelectOpen, setModelSelectOpen] = useState(false);
 
     function getItemDescendantsIds(item) {
         const ids = [];
@@ -141,7 +147,17 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
     }
 
     const loadBaseline = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/restore_baseline/`, { method: "POST" });
+        const modelId = INFO.TASK_GENERATION[selectedModelIdx].ID;
+        const requestBody = new FormData();
+        requestBody.append("model_id", modelId);
+
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/restore_baseline/`, 
+            {
+                method: "POST",
+                body: requestBody
+            }
+        );
         const rawData = await response.json();
         if (rawData["message"] === "Success") {
             setSnackbarMessage("Successfully created model reset job. Check jobs page for details.");
@@ -182,12 +198,12 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
         refresh();
     }
 
-    const rollbackToBackup = async (name) => {
-        setSnackbarMessage(`Rolling back to backup ${name}`);
+    const rollbackToBackup = async (basename) => {
+        setSnackbarMessage(`Rolling back to backup ${basename}`);
         setSnackbarSuccessful(true);
         setSnackbarOpen(true);
         const requestBody = new FormData()
-        requestBody.append("hash", name);
+        requestBody.append("hash", basename);
 
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/rollback/`, { method: "POST", body: requestBody });
         const rawData = await response.json();
@@ -203,16 +219,35 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/current_backup_version`);
         const rawData = await response.json();
         if (rawData["message"] && rawData["message"] == "Success") {
-            setCurrentVersion(rawData.name);
+            setCurrentVersion(rawData.basename);
         }
     }
 
-    const deleteBackup = async (name) => {
+    const getCurrentModelId = async () => {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/current_model_id`);
+        const rawData = await response.json();
+
+        if (rawData["message"] && rawData["message"] == "Success") {
+            let model_idx = -1;
+            for (let i = 0; i < INFO.TASK_GENERATION.length; i++) {
+                let modelInfo = INFO.TASK_GENERATION[i];
+                if (modelInfo.ID === rawData["model_id"]) {
+                    model_idx = i;
+                    break;
+                }
+            }
+            if (model_idx >= 0) {
+                setSelectedModelIdx(model_idx);
+            }
+        }
+    }
+
+    const deleteBackup = async (basename) => {
         setSnackbarMessage("Deleting backup");
         setSnackbarSuccessful(true);
         setSnackbarOpen(true);
         const requestBody = new FormData()
-        requestBody.append("hash", name);
+        requestBody.append("hash", basename);
 
         const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/backup/`, { method: "DELETE", body: requestBody });
         const rawData = await response.json();
@@ -221,7 +256,7 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
             setSnackbarSuccessful(true);
             setSnackbarOpen(true);
         }
-        
+
         refresh();
     }
 
@@ -232,6 +267,7 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
 
     useEffect(() => {
         getCurrentVersion();
+        getCurrentModelId();
     }, []);
 
     useEffect(() => {
@@ -323,26 +359,29 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
                     Model Status
                 </AccordionSummary>
                 <AccordionDetails>
+                    <Typography sx={{ display: "inline-block", pr: 1 }}>Current model:</Typography>
+                    <Typography sx={{ display: "inline-block" }} color="secondary">{INFO.TASK_GENERATION[selectedModelIdx].NAME} {INFO.TASK_GENERATION[selectedModelIdx].SIZE}</Typography>
+                    <Box sx={{ m : 1 }} />
                     <Typography>Backup history</Typography>
                     {
                         backupHistory.length === 0 ? (
-                            <Typography color="weak" sx={{ padding: 1, fontStyle: "italic" }}>The model does not have any backups</Typography>
+                            <Typography variant="body2" color="weak" sx={{ padding: 1, fontStyle: "italic" }}>The model does not have any backups</Typography>
                         ) : (
                             backupHistory.map((history, index) => (
                                 <Box key={index} sx={{ padding: 1, gap: 1, display: "flex", flexDirection: "column", maxHeight: 400, overflow: "scroll" }}>
                                     <Paper sx={{ width: "100%", padding: 1, display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "none" }}>
                                         <Box>
-                                            <Typography>{history.name === currentVersion ? `${history.name} (current)` : history.name}</Typography>
+                                            <Typography>{history.basename === currentVersion ? `${history.basename} (current)` : history.basename}</Typography>
                                             <Typography variant="body2" color="weak">{history.date_created}</Typography>
                                         </Box>
                                         <Box>
                                             <Tooltip title="Rollback">
-                                                <IconButton onClick={() => {rollbackToBackup(history.name)}}>
+                                                <IconButton onClick={() => { rollbackToBackup(history.basename) }}>
                                                     <RestoreIcon />
                                                 </IconButton>
                                             </Tooltip>
                                             <Tooltip title="Delete">
-                                                <IconButton onClick={() => {deleteBackup(history.name)}}>
+                                                <IconButton onClick={() => { deleteBackup(history.basename) }}>
                                                     <DeleteIcon />
                                                 </IconButton>
                                             </Tooltip>
@@ -354,8 +393,12 @@ export const TaskGenerationTrainerDashboard = ({caseIds, caseOrgIds, caseDataFor
                     }
                     <Pagination color="secondary" sx={{ paddingBottom: 1 }} count={backupHistoryPagesTotal} page={backupHistoryPageNumber} onChange={(_, value) => { setBackupHistoryPageNumber(value) }} />
                     <Button variant="outlined" color="secondary" size="small" onClick={backupModel}>Backup current model</Button>
+                    <Box sx={{ m : 1 }} />
 
                     <Typography>Reset to baseline model</Typography>
+                    <TaskGenModelSelect onSave={(idx) => setSelectedModelIdx(idx)} open={modelSelectOpen} onClose={() => setModelSelectOpen(false)} />
+                    <Button size="small" variant="outlined" onClick={() => setModelSelectOpen(true)}>Select Model</Button>
+                    <Box sx={{ m : 1 }} />
                     <Typography variant="body2" color="warning" sx={{ fontStyle: "italic" }}>By clicking the button below, you will reset your model to the pre-trained state.</Typography>
                     <Box sx={{ paddingTop: 1, display: "flex", gap: 1 }}>
                         <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Load baseline</Button>
