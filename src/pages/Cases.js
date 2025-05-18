@@ -8,6 +8,7 @@ import PuffLoader from "react-spinners/PuffLoader"
 import WorkIcon from '@mui/icons-material/Work';
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
+import { useCookies } from "react-cookie";
 
 const sortTypeMap = {
     0: "Creation Time Z-A", // descending order of creation time
@@ -18,6 +19,7 @@ export const Cases = () => {
     const { orgId } = useParams();
     const navigate = useNavigate();
 
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [cases, setCases] = useState([]);
     const [pageNumber, setPageNumber] = useState(1);
     const [pagesTotal, setPagesTotal] = useState(1);
@@ -39,8 +41,20 @@ export const Cases = () => {
             queryURL += `&search=${searchString}`;
         }
         queryURL += `&time_sort_type=${sortType}`;
-        const response = await fetch(queryURL);
+        const response = await fetch(
+            queryURL,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
         const rawData = await response.json();
+        
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
 
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])

@@ -14,8 +14,10 @@ import { EditSOARInfoDialog } from "./EditSOARInfoDialog";
 import { SOAR_CHOICES } from "../../../constants/platform-choices";
 import { NewSOARInfoDialog } from "./NewSOARInfoDialog";
 import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
+import { useCookies } from "react-cookie";
 
 export const SOARSettings = () => {
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [soarsData, setSoarsData] = useState([]);
     const [selectedSoarData, setSelectedSoarData] = useState(null);
     const [selectionModel, setSelectionModel] = useState([]);
@@ -49,12 +51,24 @@ export const SOARSettings = () => {
     // fetch the soar data from the backend
     const updateSoarsData = async () => {
         setSoarsLoading(true);
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/");
-        const rawData = (await response.json())["message"];
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + "soar/soar_info/",
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
+        const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
         const output = [];
         const targetSOAR = JSON.parse(localStorage.getItem("targetSOAR"));
 
-        for (let soar of rawData) {
+        for (let soar of rawData["message"]) {
             const formattedData = {
                 id: soar.id,
                 name: soar.name,
@@ -94,10 +108,22 @@ export const SOARSettings = () => {
                 const formData = new FormData();
                 formData.append("soar_id", params.row.id);
 
-                await fetch(
+                const response = await fetch(
                     process.env.REACT_APP_BACKEND_URL + "soar/soar_info/",
-                    { method: "DELETE", body: formData }
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "Authorization": `Bearer ${cookies.token}`
+                        },
+                        body: formData
+                    }
                 );
+                const responseJson = response.json();
+
+                if (responseJson.code && responseJson.code === "token_not_valid") {
+                    removeCookies("token");
+                    return;
+                }
 
                 updatedData.splice(index, 1);
                 break;
@@ -125,10 +151,22 @@ export const SOARSettings = () => {
                     const formData = new FormData();
                     formData.append("soar_id", currentSelectionModel[selectionModelIndex]);
 
-                    await fetch(
+                    const response = await fetch(
                         process.env.REACT_APP_BACKEND_URL + "soar/soar_info/",
-                        { method: "DELETE", body: formData }
+                        {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": `Bearer ${cookies.token}`
+                            },
+                            body: formData
+                        }
                     );
+                    const responseJson = response.json();
+
+                    if (responseJson.code && responseJson.code === "token_not_valid") {
+                        removeCookies("token");
+                        return;
+                    }
 
                     updatedData.splice(index, 1);
                     currentSelectionModel.splice(selectionModelIndex, 1);
@@ -156,10 +194,19 @@ export const SOARSettings = () => {
         requestBody.append("base_dir", urlObj.pathname);
         requestBody.append("api_key", soarInfo.apiKey);
 
-        await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/", {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/", {
             method: "POST",
+            headers: {
+                "Authorization": `Bearer ${cookies.token}`
+            },
             body: requestBody
         });
+        const responseJson = response.json();
+
+        if (responseJson.code && responseJson.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
         updateSoarsData();
     }
 
@@ -174,10 +221,19 @@ export const SOARSettings = () => {
         requestBody.append("base_dir", urlObj.pathname);
         requestBody.append("api_key", updatedInfo.apiKey);
 
-        await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/", {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/", {
             method: "POST",
+            headers: {
+                "Authorization": `Bearer ${cookies.token}`
+            },
             body: requestBody
         });
+        const responseJson = response.json();
+
+        if (responseJson.code && responseJson.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
         updateSoarsData();
     }
 

@@ -14,8 +14,10 @@ import { EditSIEMInfoDialog } from "./EditSIEMInfoDialog";
 import { SIEM_CHOICES } from "../../../constants/platform-choices";
 import { NewSIEMInfoDialog } from "./NewSIEMInfoDialog";
 import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
+import { useCookies } from "react-cookie";
 
 export const SIEMSettings = () => {
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [siemsData, setSiemsData] = useState([]);
     const [selectedSiemData, setSelectedSiemData] = useState(null);
     const [selectionModel, setSelectionModel] = useState([]);
@@ -49,13 +51,25 @@ export const SIEMSettings = () => {
     // fetch the siem data from the backend
     const updateSiemsData = async () => {
         setSiemsLoading(true);
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "siem/siem_info/");
-        const rawData = (await response.json())["message"];
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + "siem/siem_info/",
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
+            }
+        );
+        const rawData = await response.json();
+
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
         const output = [];
         const targetSIEM = JSON.parse(localStorage.getItem("targetSIEM"));
 
-        for (let siem of rawData) {
-            console.log(siem);
+        for (let siem of rawData["message"]) {
             const formattedData = {
                 id: siem.id,
                 name: siem.name,
@@ -70,7 +84,6 @@ export const SIEMSettings = () => {
             };
             output.push(formattedData);
         }
-        console.log(output)
 
         setSiemsData(output);
         setSiemsLoading(false);
@@ -100,10 +113,22 @@ export const SIEMSettings = () => {
                 const formData = new FormData();
                 formData.append("siem_id", params.row.id);
 
-                await fetch(
+                const response = await fetch(
                     process.env.REACT_APP_BACKEND_URL + "siem/siem_info/",
-                    { method: "DELETE", body: formData }
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "Authorization": `Bearer ${cookies.token}`
+                        },
+                        body: formData
+                    }
                 );
+                const responseJson = response.json();
+
+                if (responseJson.code && responseJson.code === "token_not_valid") {
+                    removeCookies("token");
+                    return;
+                }
 
                 updatedData.splice(index, 1);
                 break;
@@ -131,10 +156,22 @@ export const SIEMSettings = () => {
                     const formData = new FormData();
                     formData.append("siem_id", currentSelectionModel[selectionModelIndex]);
 
-                    await fetch(
+                    const response = await fetch(
                         process.env.REACT_APP_BACKEND_URL + "siem/siem_info/",
-                        { method: "DELETE", body: formData }
+                        {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": `Bearer ${cookies.token}`
+                            },
+                            body: formData
+                        }
                     );
+                    const responseJson = response.json();
+
+                    if (responseJson.code && responseJson.code === "token_not_valid") {
+                        removeCookies("token");
+                        return;
+                    }
 
                     updatedData.splice(index, 1);
                     currentSelectionModel.splice(selectionModelIndex, 1);
@@ -165,10 +202,21 @@ export const SIEMSettings = () => {
         requestBody.append("username", siemInfo.username);
         requestBody.append("password", siemInfo.password);
 
-        await fetch(process.env.REACT_APP_BACKEND_URL + "siem/siem_info/", {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "siem/siem_info/", {
             method: "POST",
+            headers: {
+                "Authorization": `Bearer ${cookies.token}`
+            },
             body: requestBody
         });
+
+        const responseJson = response.json();
+
+        if (responseJson.code && responseJson.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+        
         updateSiemsData();
     }
 
@@ -186,10 +234,20 @@ export const SIEMSettings = () => {
         requestBody.append("username", updatedInfo.username);
         requestBody.append("password", updatedInfo.password);
 
-        await fetch(process.env.REACT_APP_BACKEND_URL + "siem/siem_info/", {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "siem/siem_info/", {
             method: "POST",
+            headers: {
+                "Authorization": `Bearer ${cookies.token}`
+            },
             body: requestBody
         });
+        const responseJson = response.json();
+
+        if (responseJson.code && responseJson.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+        
         updateSiemsData();
     }
 

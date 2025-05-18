@@ -16,6 +16,7 @@ import TabList from '@mui/lab/TabList';
 import { Helmet } from "react-helmet";
 import Tab from '@mui/material/Tab';
 import { debounce } from 'lodash';
+import { useCookies } from "react-cookie";
 
 import "../css/markdown.css"
 
@@ -23,6 +24,7 @@ export const CasePage = () => {
     const { orgId, caseId } = useParams();
     const navigate = useNavigate();
 
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [errorMessage, setErrorMessage] = useState("");
     const [loading, setLoading] = useState(true);
     const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -49,8 +51,20 @@ export const CasePage = () => {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const getCaseData = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&case_id=${caseId}`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&case_id=${caseId}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
         const rawData = await response.json();
+
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
 
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])
@@ -61,8 +75,20 @@ export const CasePage = () => {
     }
 
     const getTaskList = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&org_id=${orgId}&case_id=${caseId}`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&org_id=${orgId}&case_id=${caseId}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
         const rawData = await response.json();
+
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
 
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])
@@ -81,10 +107,18 @@ export const CasePage = () => {
             process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/generate/`,
             {
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
                 body: requestBody
             }
         );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
         if (rawData.message && rawData.message === "Success") {
             setSnackbarMessage("Successfully created task generation job. Check jobs page for details.");
             setSnackbarSuccessful(true);
@@ -113,10 +147,18 @@ export const CasePage = () => {
             process.env.REACT_APP_BACKEND_URL + `ai_backend/automatic_investigation/investigate/`,
             {
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
                 body: requestBody
             }
         );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
         if (rawData.message && rawData.message === "Success") {
             setSnackbarMessage("Successfully created case investigation job. Check jobs page for details.");
             setSnackbarSuccessful(true);

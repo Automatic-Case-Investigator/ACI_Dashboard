@@ -8,9 +8,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { ConfirmationDialog } from "../components/utils/ConfirmationDialog";
 import { red } from "@mui/material/colors";
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { useCookies } from "react-cookie";
 
 
 export const Jobs = () => {
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [errorMessage, setErrorMessage] = useState("");
     const [jobList, setJobList] = useState([]);
     const [selectionModel, setSelectionModel] = useState([]);
@@ -70,10 +72,21 @@ export const Jobs = () => {
                 const formData = new FormData();
                 formData.append("job_id", params.row.id);
 
-                await fetch(
+                const response = await fetch(
                     process.env.REACT_APP_BACKEND_URL + "jobs/",
-                    { method: "DELETE", body: formData }
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "Authorization": `Bearer ${cookies.token}`
+                        },
+                        body: formData
+                    }
                 );
+                const responseJson = await response.json();
+                if (responseJson.code && responseJson.code === "token_not_valid") {
+                    removeCookies("token");
+                    return;
+                }
 
                 updatedList.splice(index, 1);
                 break;
@@ -93,10 +106,22 @@ export const Jobs = () => {
                     const formData = new FormData();
                     formData.append("job_id", jobList[index].id);
 
-                    await fetch(
+                    const response = await fetch(
                         process.env.REACT_APP_BACKEND_URL + "jobs/",
-                        { method: "DELETE", body: formData }
+                        {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": `Bearer ${cookies.token}`
+                            },
+                            body: formData
+                        }
                     );
+                    const responseJson = await response.json();
+                    if (responseJson.code && responseJson.code === "token_not_valid") {
+                        removeCookies("token");
+                        return;
+                    }
+
                     currentSelectionModel.splice(selectionModelIndex, 1);
                     deleted = true;
                     break;
@@ -110,8 +135,19 @@ export const Jobs = () => {
     }
 
     const getJobList = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `jobs/`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `jobs/`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
+            }
+        );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
 
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])

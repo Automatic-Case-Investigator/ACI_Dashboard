@@ -12,6 +12,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Pagination from '@mui/material/Pagination';
 import { TaskGenModelSelect } from "./modals/TaskGenModelSelect";
 import { INFO } from "../../constants/model-info";
+import { useCookies } from "react-cookie";
 
 /**
  * A dashboard for managing the task generation model
@@ -21,8 +22,9 @@ import { INFO } from "../../constants/model-info";
  * @property caseDataForest - a list of objects containing the organization and case information
  */
 export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataForest }) => {
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [selectedItems, setSelectedItems] = useState([]);
-    const [selectedModelIdx, setSelectedModelIdx] = useState(1);
+    const [selectedModelIdx, setSelectedModelIdx] = useState(0);
     const [backupHistoryPageNumber, setBackupHistoryPageNumber] = useState(0);
     const [backupHistory, setBackupHistory] = useState([]);
     const [backupHistoryPagesTotal, setBackupHistoryPagesTotal] = useState(0);
@@ -101,15 +103,30 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
                 continue;
             }
 
-            const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&case_id=${id}`);
+            const response = await fetch(
+                process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&case_id=${id}`,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${cookies.token}`
+                    }
+                }
+            );
             const rawData = await response.json();
+
+            if (rawData.code && rawData.code === "token_not_valid") {
+                removeCookies("token");
+                return;
+            }
 
             if (rawData["error"]) {
             } else {
-                await fetch(
+                const response = await fetch(
                     process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/case_tmp_storage/`,
                     {
                         method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${cookies.token}`
+                        },
                         body: JSON.stringify({
                             id: caseDataForest.filter((org) => org.id === caseOrgIds[id])[0].id,
                             title: caseDataForest.filter((org) => org.id === caseOrgIds[id])[0].children.filter((child) => child.id === id)[0].title,
@@ -118,6 +135,12 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
                         })
                     }
                 );
+
+                const responseJson = await response.json();
+                if (responseJson.code && responseJson.code === "token_not_valid") {
+                    removeCookies("token");
+                    return;
+                }
             }
         }
         const requestBody = new FormData();
@@ -131,10 +154,17 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
             process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/train_model/`,
             {
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
                 body: requestBody
             }
         );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
         if (rawData["message"] === "Success") {
             setSnackbarMessage("Successfully created model training job. Check jobs page for details.");
             setSnackbarSuccessful(true);
@@ -152,13 +182,20 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
         requestBody.append("model_id", modelId);
 
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/restore_baseline/`, 
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/restore_baseline/`,
             {
                 method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
                 body: requestBody
             }
         );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
         if (rawData["message"] === "Success") {
             setSnackbarMessage("Successfully created model reset job. Check jobs page for details.");
             setSnackbarSuccessful(true);
@@ -171,8 +208,19 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
     }
 
     const getBackupHistory = async (pageNumber) => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/history/?page=${pageNumber}`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/history/?page=${pageNumber}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
+            }
+        );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
         if (rawData.message && rawData.message === "Success") {
             const entriesRemaining = rawData.total_count % BACKUP_PAGE_SIZE;
             setBackupHistory(rawData.entries);
@@ -188,8 +236,21 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
         setSnackbarMessage("Creating a backup of the current model");
         setSnackbarSuccessful(true);
         setSnackbarOpen(true);
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/backup/`, { method: "POST" });
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/backup/`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
+            }
+        );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
         if (rawData.message) {
             setSnackbarMessage("Backup successful");
             setSnackbarSuccessful(true);
@@ -205,8 +266,22 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
         const requestBody = new FormData()
         requestBody.append("hash", basename);
 
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/rollback/`, { method: "POST", body: requestBody });
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/rollback/`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
+                body: requestBody
+            }
+        );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
         if (rawData.message) {
             setSnackbarMessage("Successfully rolled back");
             setSnackbarSuccessful(true);
@@ -216,17 +291,38 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
     }
 
     const getCurrentVersion = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/current_backup_version`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/current_backup_version`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
+            }
+        );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
         if (rawData["message"] && rawData["message"] == "Success") {
             setCurrentVersion(rawData.basename);
         }
     }
 
     const getCurrentModelId = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/current_model_id`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/current_model_id`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
+            }
+        );
         const rawData = await response.json();
-
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
         if (rawData["message"] && rawData["message"] == "Success") {
             let model_idx = -1;
             for (let i = 0; i < INFO.TASK_GENERATION.length; i++) {
@@ -249,8 +345,21 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
         const requestBody = new FormData()
         requestBody.append("hash", basename);
 
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/backup/`, { method: "DELETE", body: requestBody });
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/backup/`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                },
+                body: requestBody
+            }
+        );
         const rawData = await response.json();
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
         if (rawData.message) {
             setSnackbarMessage("Deletion successful");
             setSnackbarSuccessful(true);
@@ -361,7 +470,7 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
                 <AccordionDetails>
                     <Typography sx={{ display: "inline-block", pr: 1 }}>Current model:</Typography>
                     <Typography sx={{ display: "inline-block" }} color="secondary">{INFO.TASK_GENERATION[selectedModelIdx].NAME} {INFO.TASK_GENERATION[selectedModelIdx].SIZE}</Typography>
-                    <Box sx={{ m : 1 }} />
+                    <Box sx={{ m: 1 }} />
                     <Typography>Backup history</Typography>
                     {
                         backupHistory.length === 0 ? (
@@ -393,12 +502,12 @@ export const TaskGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataFo
                     }
                     <Pagination color="secondary" sx={{ paddingBottom: 1 }} count={backupHistoryPagesTotal} page={backupHistoryPageNumber} onChange={(_, value) => { setBackupHistoryPageNumber(value) }} />
                     <Button variant="outlined" color="secondary" size="small" onClick={backupModel}>Backup current model</Button>
-                    <Box sx={{ m : 1 }} />
+                    <Box sx={{ m: 1 }} />
 
                     <Typography>Reset to baseline model</Typography>
                     <TaskGenModelSelect onSave={(idx) => setSelectedModelIdx(idx)} open={modelSelectOpen} onClose={() => setModelSelectOpen(false)} />
                     <Button size="small" variant="outlined" onClick={() => setModelSelectOpen(true)}>Select Model</Button>
-                    <Box sx={{ m : 1 }} />
+                    <Box sx={{ m: 1 }} />
                     <Typography variant="body2" color="warning" sx={{ fontStyle: "italic" }}>By clicking the button below, you will reset your model to the pre-trained state.</Typography>
                     <Box sx={{ paddingTop: 1, display: "flex", gap: 1 }}>
                         <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Load baseline</Button>

@@ -7,9 +7,11 @@ import { useEffect, useState } from "react";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { ActivityGenerationTrainerDashboard } from "../components/ai_system_dashboard/ActivityGenerationTrainerDashboard";
 import { QueryGenerationTrainerDashboard } from "../components/ai_system_dashboard/QueryGenerationTrainerDashboard";
+import { useCookies } from "react-cookie";
 
 
 export const AISystems = () => {
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [AIBackendConnected, setAIBackendConnected] = useState(false);
     const [caseIds, setCaseIds] = useState([]);
     const [caseOrgIds, setCaseOrgIds] = useState({});
@@ -23,13 +25,38 @@ export const AISystems = () => {
 
 
     const testAIBackendConnection = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/status/`)
-        setAIBackendConnected((await response.json()).connected);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/status/`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        )
+        const responseJson = await response.json();
+        if (responseJson.code && responseJson.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+        setAIBackendConnected(responseJson.connected);
     }
 
     const buildCaseDataForest = async () => {
-        const orgsResponse = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/organizations/?soar_id=${targetSOAR.id}`);
+        const orgsResponse = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `soar/organizations/?soar_id=${targetSOAR.id}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
         const orgsRawData = await orgsResponse.json();
+        
+        if (orgsRawData.code && orgsRawData.code === "token_not_valid") {
+            removeCookies("token");
+            return
+        }
+
         let updatedCaseDataForest = [];
         let fetchedCaseIds = [];
         let updatedCaseOrgIds = {};
@@ -44,8 +71,20 @@ export const AISystems = () => {
                 label: `${org.name} (${org.id})`,
                 children: [],
             });
-            const casesResponse = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&org_id=${org.id}`);
+            const casesResponse = await fetch(
+                process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&org_id=${org.id}`,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${cookies.token}`
+                    }
+                }
+            );
             const casesRawData = await casesResponse.json();
+
+            if (casesRawData.code && casesRawData.code === "token_not_valid") {
+                removeCookies("token");
+                return
+            }
 
             if (casesRawData["error"]) {
                 return;

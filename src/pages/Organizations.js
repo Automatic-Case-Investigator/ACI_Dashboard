@@ -6,11 +6,13 @@ import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import { Helmet } from "react-helmet";
 import PuffLoader from "react-spinners/PuffLoader"
 import { useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 
 export const Organizations = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [organizations, setOrganizations] = useState([]);
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [targetSOAR, setTargetSOAR] = useState(() => {
         const saved = localStorage.getItem("targetSOAR");
         const initialValue = JSON.parse(saved);
@@ -18,8 +20,20 @@ export const Organizations = () => {
     });
 
     const getOrganizations = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/organizations/?soar_id=${targetSOAR.id}`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `soar/organizations/?soar_id=${targetSOAR.id}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
         const rawData = await response.json();
+
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
 
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])

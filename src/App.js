@@ -15,28 +15,31 @@ import { CasePage } from "./pages/CasePage";
 import { darkTheme } from "./themes/darkTheme";
 import { TaskPage } from "./pages/TaskPage";
 import { Login } from "./pages/Login";
+import { CookiesProvider } from "react-cookie";
+import { AuthMiddleware } from "./middlewares/authMiddleware";
 
 
 
 function App() {
     return (
-        <ThemeProvider theme={darkTheme}>
-            <CssBaseline />
-            <Router>
-                <Routes>
-                    <Route path="/" element={<Home />}></Route>
-                    {/* <Route path="/login" element={<Login />}></Route> */}
-                    <Route path="/settings" element={<Settings />}></Route>
-                    <Route path="/organizations" element={<Organizations />}></Route>
-                    <Route path="/organizations/:orgId/cases" element={<Cases />} />
-                    <Route path="/organizations/:orgId/cases/:caseId" element={<CasePage />} />
-                    <Route path="/organizations/:orgId/cases/:caseId/tasks/:taskId" element={<TaskPage />} />
-                    <Route path="/ai-systems" element={<AISystems />}></Route>
-                    <Route path="/jobs" element={<Jobs />}></Route>
-                    <Route path="*" element={<Navigate to="/" />}></Route>
-                </Routes>
-            </Router>
-        </ThemeProvider>
+        <CookiesProvider>
+            <ThemeProvider theme={darkTheme}>
+                <CssBaseline />
+                <Router>
+                    <Routes>
+                        <Route path="/" element={<AuthMiddleware child={<Home />} />}></Route>
+                        <Route path="/settings" element={<AuthMiddleware child={<Settings />} />}></Route>
+                        <Route path="/organizations" element={<AuthMiddleware child={<Organizations />} />}></Route>
+                        <Route path="/organizations/:orgId/cases" element={<AuthMiddleware child={<Cases />} />} />
+                        <Route path="/organizations/:orgId/cases/:caseId" element={<AuthMiddleware child={<CasePage />} />} />
+                        <Route path="/organizations/:orgId/cases/:caseId/tasks/:taskId" element={<AuthMiddleware child={<TaskPage />} />} />
+                        <Route path="/ai-systems" element={<AuthMiddleware child={<AISystems />} />}></Route>
+                        <Route path="/jobs" element={<AuthMiddleware child={<Jobs />} />}></Route>
+                        <Route path="*" element={<Navigate to="/" />}></Route>
+                    </Routes>
+                </Router>
+            </ThemeProvider>
+        </CookiesProvider>
     );
 }
 

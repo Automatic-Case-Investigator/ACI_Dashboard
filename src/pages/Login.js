@@ -1,10 +1,13 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { Canvas } from '@react-three/fiber';
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { useCookies } from "react-cookie"
 
 export const Login = () => {
-    const [email, setEmail] = useState("");
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [message, setMessage] = useState("");
 
     const Icosphere = () => {
         return (
@@ -14,6 +17,31 @@ export const Login = () => {
             </mesh>
         );
     };
+    const getUserToken = async () => {
+        setMessage("");
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `token/`,
+            {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            }
+        );
+        const responseJson = await response.json();
+        if (!responseJson.access) {
+            setMessage("Invalid Username or Password");
+            return;
+        }
+
+        setCookies("token", responseJson.access);
+    };
+
     return (
         <>
             <div style={{ width: "100vw", height: "100vh" }}>
@@ -39,15 +67,17 @@ export const Login = () => {
                     backdropFilter: "blur(6px)",
                 }}>
                     <Typography variant="h4" align="center">Login</Typography>
-                    <Typography>Email:</Typography>
-                    <TextField value={email} onInput={(e) => {setEmail(e.target.value)}} fullWidth />
+                    <Typography>Username:</Typography>
+                    <TextField value={username} onInput={(e) => {setUsername(e.target.value)}} fullWidth />
                     <br />
                     <br />
                     <Typography>Password:</Typography>
-                    <TextField value={password} onInput={(e) => {setPassword(e.target.value)}} fullWidth />
+                    <TextField type="password" value={password} onInput={(e) => {setPassword(e.target.value)}} fullWidth />
                     <br />
                     <br />
-                    <Button color="secondary">Sign in</Button>
+                    <Button color="secondary" onClick={getUserToken}>Sign in</Button>
+                    <br />
+                    <Typography color="error">{message}</Typography>
                 </Box>
             </Box>
         </>

@@ -6,6 +6,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import MemoryIcon from '@mui/icons-material/Memory';
 import { useState } from "react";
+import { useCookies } from "react-cookie";
 
 const drawerWidth = 80;
 
@@ -26,6 +27,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 export const VerticalNavbar = () => {
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [anchorEl, setAnchorEL] = useState(null);
     const open = Boolean(anchorEl);
     const classes = useStyles();
@@ -33,6 +35,11 @@ export const VerticalNavbar = () => {
 
     const handleClose = () => {
         setAnchorEL(null);
+    }
+
+    const handleLogout = () => {
+        handleClose();
+        removeCookies("token");
     }
 
     return (
@@ -85,7 +92,7 @@ export const VerticalNavbar = () => {
                     horizontal: 'right',
                 }}
             >
-                <MenuItem onClick={handleClose}>Logout</MenuItem>
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
         </>
     )

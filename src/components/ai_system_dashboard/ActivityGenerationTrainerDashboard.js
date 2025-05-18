@@ -3,6 +3,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useRef, useState } from "react";
 import { useTreeViewApiRef } from "@mui/x-tree-view/hooks";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
+import { useCookies } from "react-cookie";
 
 /**
  * A dashboard for managing the task generation model
@@ -12,6 +13,7 @@ import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
  * @property caseDataForest - a list of objects containing the organization and case information
  */
 export const ActivityGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataForest }) => {
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [selectedItems, setSelectedItems] = useState([]);
 
     // snackbar states
@@ -67,8 +69,22 @@ export const ActivityGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDa
     };
 
     const loadBaseline = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `ai_backend/automatic_investigation/activity_generation_model/restore_baseline/`, { method: "POST" });
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `ai_backend/automatic_investigation/activity_generation_model/restore_baseline/`,
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
         const rawData = await response.json();
+
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+        
         if (rawData["message"] === "Success") {
             setSnackbarMessage("Successfully created model reset job. Check jobs page for details.");
             setSnackbarSuccessful(true);

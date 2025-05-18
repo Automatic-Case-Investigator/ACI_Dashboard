@@ -9,10 +9,12 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 
 import "../css/markdown.css";
+import { useCookies } from "react-cookie";
 
 export const TaskPage = () => {
     const { orgId, caseId, taskId } = useParams();
 
+    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [errorMessage, setErrorMessage] = useState("");
     const [taskData, setTaskData] = useState(null);
     const [taskLogs, setTaskLogs] = useState([]);
@@ -23,8 +25,20 @@ export const TaskPage = () => {
     });
 
     const getTaskData = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&org_id=${orgId}&task_id=${taskId}`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&org_id=${orgId}&task_id=${taskId}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
         const rawData = await response.json();
+
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
 
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])
