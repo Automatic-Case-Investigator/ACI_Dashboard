@@ -43,7 +43,7 @@ export const Login = () => {
             return;
         }
 
-        setCookies("token", responseJson.access);
+        setCookies("token", responseJson.access, { path: "/" });
         setLoading(false);
     };
 
