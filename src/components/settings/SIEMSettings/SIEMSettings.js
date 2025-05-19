@@ -247,7 +247,7 @@ export const SIEMSettings = () => {
             removeCookies("token");
             return;
         }
-        
+
         updateSiemsData();
     }
 
@@ -384,10 +384,8 @@ export const SIEMSettings = () => {
                                 rowSelectionModel={selectionModel}
                                 onRowSelectionModelChange={(newSelection) => setSelectionModel(newSelection)}
                                 disableRowSelectionOnClick
-                                color="primary.main"
                                 sx={{
                                     border: 0,
-                                    color: "primary.main",
                                     "& .MuiDataGrid-checkboxInput": {
                                         color: "primary.main",
                                         "&.Mui-checked": {

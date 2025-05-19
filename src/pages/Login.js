@@ -2,6 +2,7 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import { Canvas } from '@react-three/fiber';
 import { useState } from "react";
 import { useCookies } from "react-cookie"
+import { Helmet } from "react-helmet";
 
 export const Login = () => {
     const [cookies, setCookies, removeCookies] = useCookies(["token"]);
@@ -71,15 +72,14 @@ export const Login = () => {
                     backdropFilter: "blur(6px)",
                 }}>
                     <Typography variant="h4" align="center">Login</Typography>
-                    <Typography>Username:</Typography>
-                    <TextField value={username} onInput={(e) => {setUsername(e.target.value)}} fullWidth />
+                    <br />
+                    <TextField label="Username" value={username} onInput={(e) => {setUsername(e.target.value)}} fullWidth />
                     <br />
                     <br />
-                    <Typography>Password:</Typography>
-                    <TextField type="password" value={password} onInput={(e) => {setPassword(e.target.value)}} fullWidth />
+                    <TextField label="Password" type="password" value={password} onInput={(e) => {setPassword(e.target.value)}} fullWidth />
                     <br />
                     <br />
-                    <Button color="secondary" onClick={getUserToken} loading={loading}>
+                    <Button variant="contained" onClick={getUserToken} loading={loading}>
                         Sign in
                     </Button>
                     <br />

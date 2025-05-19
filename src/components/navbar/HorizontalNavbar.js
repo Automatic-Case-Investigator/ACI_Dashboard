@@ -19,7 +19,7 @@ export const HorizontalNavbar = ({ names, routes }) => {
                     <Breadcrumbs sx={{ color: "secondary.main" }}>
                         {
                             names.map((name, index) => (
-                                <Link key={index} underline="hover" onClick={() => { navigate(routes[index]) }}>
+                                <Link key={index} underline="hover" onClick={() => { navigate(routes[index], { replace: true }) }}>
                                     {name}
                                 </Link>
                             ))
@@ -35,7 +35,7 @@ export const HorizontalNavbar = ({ names, routes }) => {
                         "&:hover svg": {
                             transform: "rotate(90deg)",
                         },
-                    }} onClick={() => { navigate("/settings") }}>
+                    }} onClick={() => { navigate("/settings", { replace: true }) }}>
                         <SettingsIcon />
                     </IconButton>
                 </Tooltip>

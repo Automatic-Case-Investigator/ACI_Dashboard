@@ -124,22 +124,27 @@ export const TaskPage = () => {
                                     {
                                         taskData ? (
                                             <>
-                                                <IconButton size="small" sx={{ mr: 1 }} onClick={() => navigate(-1)}>
-                                                    <ArrowBackIosIcon />
+                                                <IconButton
+                                                    size="small"
+                                                    edge="start"
+                                                    onClick={() => navigate(-1)}
+                                                    sx={{ mr: 1 }}
+                                                >
+                                                    <ArrowBackIosIcon fontSize="small" />
                                                 </IconButton>
-                                                <Typography sx={{ display: "inline-block", verticalAlign: "middle" }} variant="h5">{taskData.title}</Typography>
+                                                <Typography sx={{ display: "inline-block", verticalAlign: "middle" }} variant="h6">{taskData.title}</Typography>
                                                 <br />
                                                 <Box sx={{ flexDirection: 'row' }}>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2 }}><b>ID:</b></Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2, color: "weak.main" }}>{taskData.id}</Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2 }}><b>Created At:</b></Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2, color: "weak.main" }}>{new Date(taskData.createdAt).toString()}</Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2 }}><b>Created By:</b></Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2, color: "weak.main" }}>{taskData.createdBy}</Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2 }}><b>Group:</b></Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2, color: "weak.main" }}>{taskData.group}</Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2 }}><b>Status:</b></Typography>
-                                                    <Typography sx={{ display: "inline-block", paddingRight: 2, color: "weak.main" }}>{taskData.status}</Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1 }} variant="body2"><b>ID:</b></Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1, color: "weak.main" }} variant="body2">{taskData.id}</Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1 }} variant="body2"><b>Created At:</b></Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1, color: "weak.main" }} variant="body2">{new Date(taskData.createdAt).toString()}</Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1 }} variant="body2"><b>Created By:</b></Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1, color: "weak.main" }} variant="body2">{taskData.createdBy}</Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1 }} variant="body2"><b>Group:</b></Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1, color: "weak.main" }} variant="body2">{taskData.group}</Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1 }} variant="body2"><b>Status:</b></Typography>
+                                                    <Typography sx={{ display: "inline-block", paddingRight: 1, color: "weak.main" }} variant="body2">{taskData.status}</Typography>
                                                     <Divider sx={{ paddingTop: 1, marginBottom: 2 }} />
 
                                                     <Typography variant="h6">Description:</Typography>
