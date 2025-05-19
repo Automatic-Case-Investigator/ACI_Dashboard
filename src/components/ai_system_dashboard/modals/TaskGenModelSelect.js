@@ -1,4 +1,4 @@
-import { Box, Button, Modal, Paper, selectClasses, Typography } from "@mui/material"
+import { Box, Button, Modal, Paper, Typography } from "@mui/material"
 import { INFO } from "../../../constants/model-info";
 import { useState } from "react";
 import TokenIcon from '@mui/icons-material/Token';

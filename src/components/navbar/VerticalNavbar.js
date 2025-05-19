@@ -7,6 +7,7 @@ import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import MemoryIcon from '@mui/icons-material/Memory';
 import { useState } from "react";
 import { useCookies } from "react-cookie";
+import { ResetCredentialsModal } from "./modals/ResetCredentialsModal";
 
 const drawerWidth = 80;
 
@@ -28,6 +29,7 @@ const useStyles = makeStyles((theme) => ({
 
 export const VerticalNavbar = () => {
     const [cookies, setCookies, removeCookies] = useCookies(["token"]);
+    const [modalOpen, setModalOpen] = useState(false);
     const [anchorEl, setAnchorEL] = useState(null);
     const open = Boolean(anchorEl);
     const classes = useStyles();
@@ -78,6 +80,7 @@ export const VerticalNavbar = () => {
                     </Button>
                 </Stack>
             </Drawer>
+            <ResetCredentialsModal open={modalOpen} onClose={() => setModalOpen(false)} />
             <Menu
                 id="basic-menu"
                 anchorEl={anchorEl}
@@ -92,6 +95,7 @@ export const VerticalNavbar = () => {
                     horizontal: 'right',
                 }}
             >
+                <MenuItem onClick={() => setModalOpen(true)}>Reset Credentials</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
         </>
