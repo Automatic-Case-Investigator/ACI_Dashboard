@@ -1,7 +1,14 @@
 import { Helmet } from "react-helmet";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { Box, Dialog, IconButton, Paper, Tooltip, Typography } from "@mui/material";
+import {
+    Box,
+    Dialog,
+    IconButton,
+    Paper,
+    Tooltip,
+    Typography
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -10,15 +17,15 @@ import { red } from "@mui/material/colors";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useCookies } from "react-cookie";
 
-
 export const Jobs = () => {
-    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
+    const [cookies, , removeCookies] = useCookies(["token"]);
     const [errorMessage, setErrorMessage] = useState("");
     const [jobList, setJobList] = useState([]);
     const [selectionModel, setSelectionModel] = useState([]);
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [upcomingAction, setUpcomingAction] = useState({});
 
+    // DataGrid column definitions
     const columns = [
         { field: "id", type: "string", headerName: "ID", flex: 0.5 },
         { field: "status", type: "string", headerName: "Status", flex: 0.3 },
@@ -29,20 +36,19 @@ export const Jobs = () => {
         {
             field: "actions", type: "actions", headerName: "Actions", flex: 0.2,
             renderCell: (params) => (
-                <>
-                    <Tooltip title="Delete">
-                        <IconButton onClick={() => {
-                            scheduleUpcomingAction(handleJobDelete, params);
-                            setConfirmDialogOpen(true);
-                        }}>
-                            <DeleteIcon />
-                        </IconButton>
-                    </Tooltip>
-                </>
+                <Tooltip title="Delete">
+                    <IconButton onClick={() => {
+                        scheduleUpcomingAction(handleJobDelete, params);
+                        setConfirmDialogOpen(true);
+                    }}>
+                        <DeleteIcon />
+                    </IconButton>
+                </Tooltip>
             )
         },
-    ]
+    ];
 
+    // Stores the function and arguments to execute after confirmation dialog
     const scheduleUpcomingAction = (func, ...args) => {
         setUpcomingAction({ func, args });
     };
@@ -55,112 +61,105 @@ export const Jobs = () => {
         getJobList();
     };
 
+    // Converts Unix timestamps to JS Date objects for display
     const evaluateTimestamp = (jobs) => {
-        var output = []
-        for (let job of jobs) {
-            job.createdAt = new Date(job.createdAt * 1000)
-            job.finishedAt = new Date(job.finishedAt * 1000)
-            output.push(job)
-        }
-        return output;
-    }
+        return jobs.map(job => ({
+            ...job,
+            createdAt: new Date(job.createdAt * 1000),
+            finishedAt: new Date(job.finishedAt * 1000),
+        }));
+    };
 
+    // Handles deletion of a single job
     const handleJobDelete = async (params) => {
-        const updatedList = Object.assign([], jobList);
-        for (let index = 0; index < updatedList.length; index++) {
-            if (updatedList[index].id === params.row.id) {
+        const updatedList = [...jobList];
+        const index = updatedList.findIndex(job => job.id === params.row.id);
+        if (index !== -1) {
+            const formData = new FormData();
+            formData.append("job_id", params.row.id);
+
+            const response = await fetch(
+                process.env.REACT_APP_BACKEND_URL + "jobs/",
+                {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${cookies.token}` },
+                    body: formData
+                }
+            );
+            const responseJson = await response.json();
+
+            if (responseJson.code === "token_not_valid") {
+                removeCookies("token");
+                return;
+            }
+
+            updatedList.splice(index, 1);
+            setJobList(evaluateTimestamp(updatedList));
+        }
+    };
+
+    // Handles bulk deletion of selected jobs
+    const handleJobMassDelete = async () => {
+        const updatedList = [];
+        const selected = [...selectionModel];
+
+        for (const job of jobList) {
+            if (selected.includes(job.id)) {
                 const formData = new FormData();
-                formData.append("job_id", params.row.id);
+                formData.append("job_id", job.id);
 
                 const response = await fetch(
                     process.env.REACT_APP_BACKEND_URL + "jobs/",
                     {
                         method: "DELETE",
-                        headers: {
-                            "Authorization": `Bearer ${cookies.token}`
-                        },
+                        headers: { "Authorization": `Bearer ${cookies.token}` },
                         body: formData
                     }
                 );
                 const responseJson = await response.json();
-                if (responseJson.code && responseJson.code === "token_not_valid") {
+
+                if (responseJson.code === "token_not_valid") {
                     removeCookies("token");
                     return;
                 }
 
-                updatedList.splice(index, 1);
-                break;
+                // Remove from selection
+                selected.splice(selected.indexOf(job.id), 1);
+            } else {
+                updatedList.push(job);
             }
         }
 
         setJobList(evaluateTimestamp(updatedList));
-    }
+    };
 
-    const handleJobMassDelete = async () => {
-        var updatedList = [];
-        const currentSelectionModel = Object.assign([], selectionModel);
-        for (let index = 0; index < jobList.length; index++) {
-            let deleted = false;
-            for (let selectionModelIndex = 0; selectionModelIndex < currentSelectionModel.length; selectionModelIndex++) {
-                if (jobList[index].id === currentSelectionModel[selectionModelIndex]) {
-                    const formData = new FormData();
-                    formData.append("job_id", jobList[index].id);
-
-                    const response = await fetch(
-                        process.env.REACT_APP_BACKEND_URL + "jobs/",
-                        {
-                            method: "DELETE",
-                            headers: {
-                                "Authorization": `Bearer ${cookies.token}`
-                            },
-                            body: formData
-                        }
-                    );
-                    const responseJson = await response.json();
-                    if (responseJson.code && responseJson.code === "token_not_valid") {
-                        removeCookies("token");
-                        return;
-                    }
-
-                    currentSelectionModel.splice(selectionModelIndex, 1);
-                    deleted = true;
-                    break;
-                }
-            }
-            if (!deleted) {
-                updatedList.push(jobList[index]);
-            }
-        }
-        setJobList(evaluateTimestamp(updatedList));
-    }
-
+    // Fetch jobs from the backend
     const getJobList = async () => {
         const response = await fetch(
             process.env.REACT_APP_BACKEND_URL + `jobs/`,
             {
-                headers: {
-                    "Authorization": `Bearer ${cookies.token}`
-                },
+                headers: { "Authorization": `Bearer ${cookies.token}` }
             }
         );
         const rawData = await response.json();
-        if (rawData.code && rawData.code === "token_not_valid") {
+
+        if (rawData.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
 
-        if (rawData["error"]) {
-            setErrorMessage(rawData["error"])
+        if (rawData.error) {
+            setErrorMessage(rawData.error);
         } else {
-            setErrorMessage("")
-
-            setJobList(evaluateTimestamp(rawData["jobs"]))
+            setErrorMessage("");
+            setJobList(evaluateTimestamp(rawData.jobs));
         }
-    }
+    };
 
     useEffect(() => {
         getJobList();
-    }, [])
+    }, []);
+
     return (
         <>
             <Helmet>
@@ -169,68 +168,70 @@ export const Jobs = () => {
             <Box sx={{ display: "flex" }}>
                 <HorizontalNavbar names={["Jobs"]} routes={["/jobs"]} />
                 <VerticalNavbar />
+
                 <Dialog open={confirmDialogOpen}>
-                    <ConfirmationDialog onCancel={() => { setConfirmDialogOpen(false) }} onContinue={() => { executeUpcomingAction(); setConfirmDialogOpen(false) }} />
+                    <ConfirmationDialog
+                        onCancel={() => setConfirmDialogOpen(false)}
+                        onContinue={() => {
+                            executeUpcomingAction();
+                            setConfirmDialogOpen(false);
+                        }}
+                    />
                 </Dialog>
+
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
                     <Box sx={{ float: "right" }}>
-                        {
-                            selectionModel.length > 0 && (
-
-                                <Tooltip title="Delete Selection">
-                                    <IconButton onClick={() => {
-                                        scheduleUpcomingAction(handleJobMassDelete)
-                                        setConfirmDialogOpen(true)
-                                    }}>
-                                        <DeleteIcon style={{ color: red[500] }} />
-                                    </IconButton>
-                                </Tooltip>
-                            )
-                        }
+                        {selectionModel.length > 0 && (
+                            <Tooltip title="Delete Selection">
+                                <IconButton onClick={() => {
+                                    scheduleUpcomingAction(handleJobMassDelete);
+                                    setConfirmDialogOpen(true);
+                                }}>
+                                    <DeleteIcon style={{ color: red[500] }} />
+                                </IconButton>
+                            </Tooltip>
+                        )}
                         <Tooltip title="Refresh">
                             <IconButton onClick={getJobList}>
                                 <RefreshIcon />
                             </IconButton>
                         </Tooltip>
                     </Box>
-                    {
-                        errorMessage.length === 0 ? (
-                            <Paper sx={{ height: 600, width: "calc(100vw - 125px)", marginTop: 5.5 }}>
-                                <DataGrid
-                                    rows={jobList}
-                                    columns={columns}
-                                    initialState={{
-                                        pagination: {
-                                            paginationModel: {
-                                                pageSize: 10,
-                                            },
-                                        },
-                                    }}
-                                    pageSizeOptions={[10]}
-                                    checkboxSelection
-                                    rowSelectionModel={selectionModel}
-                                    onRowSelectionModelChange={(newSelection) => setSelectionModel(newSelection)}
-                                    disableRowSelectionOnClick
-                                    color="primary.main"
-                                    sx={{
-                                        border: 0,
-                                        width: "calc(100vw - 125px)",
+
+                    {errorMessage.length === 0 ? (
+                        <Paper sx={{ height: 600, width: "calc(100vw - 125px)", marginTop: 5.5 }}>
+                            <DataGrid
+                                rows={jobList}
+                                columns={columns}
+                                initialState={{
+                                    pagination: {
+                                        paginationModel: { pageSize: 10 }
+                                    }
+                                }}
+                                pageSizeOptions={[10]}
+                                checkboxSelection
+                                rowSelectionModel={selectionModel}
+                                onRowSelectionModelChange={(newSelection) => setSelectionModel(newSelection)}
+                                disableRowSelectionOnClick
+                                color="primary.main"
+                                sx={{
+                                    border: 0,
+                                    width: "calc(100vw - 125px)",
+                                    color: "primary.main",
+                                    "& .MuiDataGrid-checkboxInput": {
                                         color: "primary.main",
-                                        "& .MuiDataGrid-checkboxInput": {
-                                            color: "primary.main",
-                                            "&.Mui-checked": {
-                                                color: "secondary.main",
-                                            },
-                                        }
-                                    }}
-                                />
-                            </Paper>
-                        ) : (
-                            <Typography variant="body1">{errorMessage}</Typography>
-                        )
-                    }
+                                        "&.Mui-checked": {
+                                            color: "secondary.main",
+                                        },
+                                    }
+                                }}
+                            />
+                        </Paper>
+                    ) : (
+                        <Typography variant="body1">{errorMessage}</Typography>
+                    )}
                 </Box>
             </Box>
         </>
-    )
-}
+    );
+};

@@ -160,6 +160,10 @@ export const TaskList = ({ taskList, soarId, orgId, caseId, onRefresh }) => {
                                 rowSelectionModel={selectionModel}
                                 onRowSelectionModelChange={(newSelection) => setSelectionModel(newSelection)}
                                 disableRowSelectionOnClick
+                                onCellDoubleClick={(params, event) => {
+                                    event.defaultMuiPrevented = true;
+                                    navigate(`/organizations/${orgId}/cases/${caseId}/tasks/${params.id}`)
+                                }}
                                 color="primary.main"
                                 sx={{
                                     border: 0,

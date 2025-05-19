@@ -1,7 +1,7 @@
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, Divider, IconButton, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -22,7 +22,8 @@ import "../css/markdown.css"
 
 export const CasePage = () => {
     const { orgId, caseId } = useParams();
-    const navigate = useNavigate();
+
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [errorMessage, setErrorMessage] = useState("");
@@ -31,7 +32,8 @@ export const CasePage = () => {
     const [snackbarSuccessful, setSnackbarSuccessful] = useState(true);
     const [caseData, setCaseData] = useState();
     const [taskList, setTaskList] = useState([]);
-    const [currentTab, setCurrentTab] = useState(0);
+    const currentTab = searchParams.get('tab') || "0";
+
     const [targetSOAR, setTargetSOAR] = useState(() => {
         const saved = localStorage.getItem("targetSOAR");
         const initialValue = JSON.parse(saved);
@@ -242,18 +244,22 @@ export const CasePage = () => {
                                                 </Box>
                                                 <TabContext value={currentTab}>
                                                     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                                        <TabList indicatorColor="secondary" onChange={(_, newValue) => { setCurrentTab(newValue) }} aria-label="lab API tabs example">
-                                                            <Tab label="General" value={0} disableRipple />
-                                                            <Tab label="Tasks" value={1} disableRipple />
-                                                            <Tab label="Automatic Investigation" value={2} disableRipple />
+                                                        <TabList indicatorColor="secondary" onChange={(_, value) => {
+                                                            setSearchParams({ tab: value });
+                                                        }}>
+
+                                                            <Tab label="General" value="0" disableRipple />
+                                                            <Tab label="Tasks" value="1" disableRipple />
+                                                            <Tab label="Automatic Investigation" value="2" disableRipple />
+
                                                         </TabList>
                                                     </Box>
-                                                    <TabPanel value={0}><MarkdownPreview source={caseData.description} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main }} /></TabPanel>
-                                                    <TabPanel value={1}>
+                                                    <TabPanel value="0"><MarkdownPreview source={caseData.description} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main }} /></TabPanel>
+                                                    <TabPanel value="1">
                                                         <Button size="small" color="secondary" variant="outlined" onClick={debouncedGenerateTask}>Generate Tasks</Button>
                                                         <TaskList taskList={taskList} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
                                                     </TabPanel>
-                                                    <TabPanel value={2}>
+                                                    <TabPanel value="2">
                                                         <Typography variant="h6">Options</Typography>
                                                         <Accordion>
                                                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -265,7 +271,7 @@ export const CasePage = () => {
                                                                     present in the case.
                                                                 </Typography>
                                                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Enable</Typography>
-                                                                <Checkbox sx={{ paddingLeft: 0 }} color="secondary" checked={enableActivityGeneration} onChange={() => setEnableActivityGeneration(!enableActivityGeneration)}/>
+                                                                <Checkbox sx={{ paddingLeft: 0 }} color="secondary" checked={enableActivityGeneration} onChange={() => setEnableActivityGeneration(!enableActivityGeneration)} />
                                                             </AccordionDetails>
                                                         </Accordion>
                                                         <Accordion>
@@ -279,7 +285,7 @@ export const CasePage = () => {
                                                                     enabling the activity generation or manually writing down investigation activities.
                                                                 </Typography>
                                                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Enable</Typography>
-                                                                <Checkbox sx={{ paddingLeft: 0 }} color="secondary" checked={enableSIEMInvestigation} onChange={() => setEnableSIEMInvestigation(!enableSIEMInvestigation)}/>
+                                                                <Checkbox sx={{ paddingLeft: 0 }} color="secondary" checked={enableSIEMInvestigation} onChange={() => setEnableSIEMInvestigation(!enableSIEMInvestigation)} />
                                                                 <br />
                                                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Search depth</Typography>
                                                                 <TextField size="small" type="number" />

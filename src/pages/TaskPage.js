@@ -1,15 +1,16 @@
+import { Box, Divider, IconButton, Paper, Typography } from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { Box, Divider, Paper, Typography } from "@mui/material";
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import MarkdownPreview from '@uiw/react-markdown-preview';
+import { useNavigate, useParams } from "react-router-dom";
 import PuffLoader from "react-spinners/PuffLoader"
 import { darkTheme } from "../themes/darkTheme";
-import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 
 import "../css/markdown.css";
-import { useCookies } from "react-cookie";
 
 export const TaskPage = () => {
     const { orgId, caseId, taskId } = useParams();
@@ -23,6 +24,8 @@ export const TaskPage = () => {
         const initialValue = JSON.parse(saved);
         return initialValue || null;
     });
+
+    const navigate = useNavigate();
 
     const getTaskData = async () => {
         const response = await fetch(
@@ -49,8 +52,21 @@ export const TaskPage = () => {
     }
 
     const getTaskLogs = async () => {
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + `soar/task_log/?soar_id=${targetSOAR.id}&task_id=${taskId}`);
+        const response = await fetch(
+            process.env.REACT_APP_BACKEND_URL + `soar/task_log/?soar_id=${targetSOAR.id}&task_id=${taskId}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            }
+        );
+
         const rawData = await response.json();
+
+        if (rawData.code && rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
 
         if (rawData["error"]) {
             setErrorMessage(rawData["error"])
@@ -69,6 +85,7 @@ export const TaskPage = () => {
         getTaskData();
         getTaskLogs();
     }, [targetSOAR]);
+
     return (
         <>
             {
@@ -107,7 +124,11 @@ export const TaskPage = () => {
                                     {
                                         taskData ? (
                                             <>
-                                                <Typography variant="h5">{taskData.title}</Typography>
+                                                <IconButton size="small" sx={{ mr: 1 }} onClick={() => navigate(-1)}>
+                                                    <ArrowBackIosIcon />
+                                                </IconButton>
+                                                <Typography sx={{ display: "inline-block", verticalAlign: "middle" }} variant="h5">{taskData.title}</Typography>
+                                                <br />
                                                 <Box sx={{ flexDirection: 'row' }}>
                                                     <Typography sx={{ display: "inline-block", paddingRight: 2 }}><b>ID:</b></Typography>
                                                     <Typography sx={{ display: "inline-block", paddingRight: 2, color: "weak.main" }}>{taskData.id}</Typography>

@@ -1,4 +1,16 @@
-import { Box, IconButton, InputLabel, List, ListItem, ListItemIcon, ListItemText, MenuItem, OutlinedInput, Pagination, Select, TextField, Typography } from "@mui/material";
+import {
+    Box,
+    IconButton,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    MenuItem,
+    Pagination,
+    Select,
+    TextField,
+    Typography
+} from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { useNavigate, useParams } from "react-router-dom";
@@ -10,16 +22,17 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useCookies } from "react-cookie";
 
+// Sort type labels for dropdown
 const sortTypeMap = {
-    0: "Creation Time Z-A", // descending order of creation time
-    1: "Creation Time A-Z", // ascending order of creation time
+    0: "Creation Time Z-A", // descending
+    1: "Creation Time A-Z", // ascending
 }
 
 export const Cases = () => {
     const { orgId } = useParams();
     const navigate = useNavigate();
 
-    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
+    const [cookies, , removeCookies] = useCookies(["token"]);
     const [cases, setCases] = useState([]);
     const [pageNumber, setPageNumber] = useState(1);
     const [pagesTotal, setPagesTotal] = useState(1);
@@ -27,13 +40,15 @@ export const Cases = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [searchString, setSearchString] = useState("");
     const [sortType, setSortType] = useState(Object.keys(sortTypeMap)[0]);
+
+    // Load target SOAR platform from local storage
     const [targetSOAR, setTargetSOAR] = useState(() => {
         const saved = localStorage.getItem("targetSOAR");
         const initialValue = JSON.parse(saved);
         return initialValue || null;
     });
 
-    // obtain a list of cases from the backend
+    // Fetch list of cases from backend
     const getCases = async () => {
         setLoading(true);
         let queryURL = process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&org_id=${orgId}&page=${pageNumber}`;
@@ -41,41 +56,38 @@ export const Cases = () => {
             queryURL += `&search=${searchString}`;
         }
         queryURL += `&time_sort_type=${sortType}`;
-        const response = await fetch(
-            queryURL,
-            {
-                headers: {
-                    "Authorization": `Bearer ${cookies.token}`
-                }
+
+        const response = await fetch(queryURL, {
+            headers: {
+                "Authorization": `Bearer ${cookies.token}`
             }
-        );
+        });
+
         const rawData = await response.json();
-        
-        if (rawData.code && rawData.code === "token_not_valid") {
+
+        // Handle token expiration
+        if (rawData.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
 
-        if (rawData["error"]) {
-            setErrorMessage(rawData["error"])
+        if (rawData.error) {
+            setErrorMessage(rawData.error);
         } else {
-            setErrorMessage("")
-            setCases(rawData["cases"])
+            setErrorMessage("");
+            setCases(rawData.cases);
 
-            const entriesRemaining = rawData["total_count"] % CASE_PAGE_SIZE;
-            if (entriesRemaining) {
-                setPagesTotal(Math.floor(rawData["total_count"] / CASE_PAGE_SIZE) + 1)
-            } else {
-                setPagesTotal(Math.floor(rawData["total_count"] / CASE_PAGE_SIZE))
-            }
+            // Compute total pages
+            const entriesRemaining = rawData.total_count % CASE_PAGE_SIZE;
+            setPagesTotal(Math.floor(rawData.total_count / CASE_PAGE_SIZE) + (entriesRemaining ? 1 : 0));
         }
+
         setLoading(false);
-    }
+    };
 
+    // Re-fetch cases when SOAR or page number changes
     useEffect(() => {
-        if (!targetSOAR) {
-            return;
-        }
+        if (!targetSOAR) return;
         getCases();
     }, [targetSOAR, pageNumber]);
 
@@ -84,12 +96,16 @@ export const Cases = () => {
             <Helmet>
                 <title>Cases</title>
             </Helmet>
+
             <Box sx={{ display: "flex" }}>
                 <HorizontalNavbar
                     names={["Organizations", `${orgId}`, "cases"]}
-                    routes={["/organizations", `/organizations/${orgId}/cases`, `/organizations/${orgId}/cases`]} />
+                    routes={["/organizations", `/organizations/${orgId}/cases`, `/organizations/${orgId}/cases`]}
+                />
                 <VerticalNavbar />
+
                 <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
+                    {/* Search and Sort Controls */}
                     <Box sx={{ width: "100%", display: "flex" }}>
                         <TextField
                             size="small"
@@ -103,90 +119,101 @@ export const Cases = () => {
                                 }
                             }}
                             sx={{ marginRight: 1 }}
-                            fullWidth />
+                            fullWidth
+                        />
                         <Select
                             size="small"
                             value={sortType}
                             onChange={(e) => setSortType(e.target.value)}
-                            sx={{ width: 200 }}>
-                            {
-                                Object.keys(sortTypeMap).map((key, _) => (
-                                    <MenuItem key={key} value={key}>
-                                        {sortTypeMap[key]}
-                                    </MenuItem>
-                                ))
-                            }
+                            sx={{ width: 200 }}
+                        >
+                            {Object.keys(sortTypeMap).map((key) => (
+                                <MenuItem key={key} value={key}>
+                                    {sortTypeMap[key]}
+                                </MenuItem>
+                            ))}
                         </Select>
                         <IconButton onClick={getCases}>
                             <SearchIcon />
                         </IconButton>
                     </Box>
-                    {
-                        targetSOAR ? (
-                            errorMessage.length > 0 ? (
-                                <Typography variant="body1">{errorMessage}</Typography>
-                            ) : (
-                                <>
-                                    {
-                                        loading ? (
-                                            <PuffLoader color="#00ffea" />
-                                        ) : (
-                                            <>
-                                                {
-                                                    cases.length > 0 ? (
-                                                        <List>
-                                                            {
-                                                                cases.map((case_data, index) => (
-                                                                    <ListItem key={index} sx={{ display: "block" }} onClick={() => { navigate(`/organizations/${orgId}/cases/${case_data.id}`) }}>
-                                                                        <ListItemIcon sx={{ display: "inline-block", verticalAlign: "middle" }}>
-                                                                            <WorkIcon />
-                                                                        </ListItemIcon>
-                                                                        <ListItemText
-                                                                            sx={{ display: "inline-block", verticalAlign: "middle" }}
-                                                                            primaryTypographyProps={{
-                                                                                sx: {
-                                                                                    width: "calc(40vw - 150px)",
-                                                                                    overflow: 'hidden',
-                                                                                    textOverflow: 'ellipsis',
-                                                                                    whiteSpace: 'nowrap',
-                                                                                },
-                                                                            }}
-                                                                            primary={case_data.title}
-                                                                            secondary={`ID: ${case_data.id}`} />
-                                                                        <ListItemText
-                                                                            sx={{ display: "inline-block", verticalAlign: "middle", marginLeft: 10 }}
-                                                                            secondaryTypographyProps={{
-                                                                                sx: {
-                                                                                    width: "calc(60vw - 150px)",
-                                                                                    overflow: 'hidden',
-                                                                                    textOverflow: 'ellipsis',
-                                                                                    whiteSpace: 'nowrap',
-                                                                                },
-                                                                            }}
-                                                                            secondary={`Description: ${case_data.description}`} />
-                                                                    </ListItem>
-                                                                ))
-                                                            }
-                                                        </List>
-                                                    ) : (
-                                                        <Typography color="weak" sx={{ padding: 1, fontStyle: "italic" }}>Cannot find cases in the SOAR platform</Typography>
-                                                    )
-                                                }
-                                                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                    <Pagination color="secondary" sx={{ paddingBottom: 1 }} count={pagesTotal} page={pageNumber} onChange={(_, value) => { setPageNumber(value) }} />
-                                                </Box>
-                                            </>
-                                        )
-                                    }
 
-                                </>
-                            )
+                    {targetSOAR ? (
+                        errorMessage ? (
+                            <Typography variant="body1">{errorMessage}</Typography>
                         ) : (
-                            <Typography variant="body1">You haven't select your target SOAR platform yet. Please select your target SOAR platform in settings.</Typography>
+                            <>
+                                {loading ? (
+                                    <PuffLoader color="#00ffea" />
+                                ) : (
+                                    <>
+                                        {cases.length > 0 ? (
+                                            <List>
+                                                {cases.map((case_data, index) => (
+                                                    <ListItem
+                                                        key={index}
+                                                        sx={{ display: "block" }}
+                                                        onClick={() => navigate(`/organizations/${orgId}/cases/${case_data.id}`)}
+                                                    >
+                                                        <ListItemIcon sx={{ display: "inline-block", verticalAlign: "middle" }}>
+                                                            <WorkIcon />
+                                                        </ListItemIcon>
+                                                        <ListItemText
+                                                            sx={{ display: "inline-block", verticalAlign: "middle" }}
+                                                            primaryTypographyProps={{
+                                                                sx: {
+                                                                    width: "calc(40vw - 150px)",
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis',
+                                                                    whiteSpace: 'nowrap',
+                                                                },
+                                                            }}
+                                                            primary={case_data.title}
+                                                            secondary={`ID: ${case_data.id}`}
+                                                        />
+                                                        <ListItemText
+                                                            sx={{ display: "inline-block", verticalAlign: "middle", marginLeft: 10 }}
+                                                            secondaryTypographyProps={{
+                                                                sx: {
+                                                                    width: "calc(60vw - 150px)",
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis',
+                                                                    whiteSpace: 'nowrap',
+                                                                },
+                                                            }}
+                                                            secondary={`Description: ${case_data.description}`}
+                                                        />
+                                                    </ListItem>
+                                                ))}
+                                            </List>
+                                        ) : (
+                                            <Typography
+                                                color="weak"
+                                                sx={{ padding: 1, fontStyle: "italic" }}
+                                            >
+                                                Cannot find cases in the SOAR platform
+                                            </Typography>
+                                        )}
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                            <Pagination
+                                                color="secondary"
+                                                sx={{ paddingBottom: 1 }}
+                                                count={pagesTotal}
+                                                page={pageNumber}
+                                                onChange={(_, value) => setPageNumber(value)}
+                                            />
+                                        </Box>
+                                    </>
+                                )}
+                            </>
                         )
-                    }
+                    ) : (
+                        <Typography variant="body1">
+                            You haven't selected your target SOAR platform yet. Please select your target SOAR platform in settings.
+                        </Typography>
+                    )}
                 </Box>
             </Box>
         </>
-    )
-}
+    );
+};

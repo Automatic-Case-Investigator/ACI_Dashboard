@@ -8,6 +8,7 @@ export const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const Icosphere = () => {
         return (
@@ -18,6 +19,7 @@ export const Login = () => {
         );
     };
     const getUserToken = async () => {
+        setLoading(true);
         setMessage("");
         const response = await fetch(
             process.env.REACT_APP_BACKEND_URL + `token/`,
@@ -36,10 +38,12 @@ export const Login = () => {
         const responseJson = await response.json();
         if (!responseJson.access) {
             setMessage("Invalid Username or Password");
+            setLoading(false);
             return;
         }
 
         setCookies("token", responseJson.access);
+        setLoading(false);
     };
 
     return (
@@ -75,7 +79,9 @@ export const Login = () => {
                     <TextField type="password" value={password} onInput={(e) => {setPassword(e.target.value)}} fullWidth />
                     <br />
                     <br />
-                    <Button color="secondary" onClick={getUserToken}>Sign in</Button>
+                    <Button color="secondary" onClick={getUserToken} loading={loading}>
+                        Sign in
+                    </Button>
                     <br />
                     <Typography color="error">{message}</Typography>
                 </Box>
