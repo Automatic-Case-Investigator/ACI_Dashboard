@@ -164,11 +164,9 @@ export const TaskList = ({ taskList, soarId, orgId, caseId, onRefresh }) => {
                                     event.defaultMuiPrevented = true;
                                     navigate(`/organizations/${orgId}/cases/${caseId}/tasks/${params.id}`)
                                 }}
-                                color="primary.main"
                                 sx={{
                                     border: 0,
                                     width: "calc(100vw - 160px)",
-                                    color: "primary.main",
                                     "& .MuiDataGrid-checkboxInput": {
                                         color: "primary.main",
                                         "&.Mui-checked": {

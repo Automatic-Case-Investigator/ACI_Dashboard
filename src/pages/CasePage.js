@@ -1,7 +1,8 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, Divider, IconButton, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, IconButton, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { useParams, useSearchParams } from "react-router-dom";
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -44,6 +45,8 @@ export const CasePage = () => {
         const initialValue = JSON.parse(saved);
         return initialValue || null;
     });
+
+    const navigate = useNavigate();
 
     // automatic investigation states
     const [enableActivityGeneration, setEnableActivityGeneration] = useState(true);
@@ -234,14 +237,26 @@ export const CasePage = () => {
                                     {
                                         caseData && !loading ? (
                                             <>
-                                                <Box>
-                                                    <Typography variant="body1" sx={{ display: "inline-block" }}>{caseData.title}</Typography>
+                                                <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>    
+                                                    <IconButton
+                                                        size="small"
+                                                        edge="start"
+                                                        onClick={() => navigate(`/organizations/${orgId}/cases`, { replace: true })}
+                                                        sx={{ mr: 1 }}
+                                                    >
+                                                        <ArrowBackIosIcon fontSize="small" />
+                                                    </IconButton>
+                                                    <Typography variant="body1" sx={{ flexGrow: 1 }}>
+                                                        {caseData.title}
+                                                    </Typography>
+
                                                     <Tooltip title="Refresh">
-                                                        <IconButton sx={{ float: "right" }} onClick={refresh}>
+                                                        <IconButton onClick={refresh}>
                                                             <RefreshIcon />
                                                         </IconButton>
                                                     </Tooltip>
                                                 </Box>
+
                                                 <TabContext value={currentTab}>
                                                     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                                         <TabList indicatorColor="secondary" onChange={(_, value) => {
