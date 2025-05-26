@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { useTreeViewApiRef } from "@mui/x-tree-view/hooks";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { useCookies } from "react-cookie";
+import { QueryGenModelSelect } from "./modals/QueryGenModelSelect";
+import { INFO } from "../../constants/model-info";
 
 /**
  * A dashboard for managing the task generation model
@@ -15,11 +17,15 @@ import { useCookies } from "react-cookie";
 export const QueryGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataForest }) => {
     const [cookies, setCookies, removeCookies] = useCookies(["token"]);
     const [selectedItems, setSelectedItems] = useState([]);
+    const [selectedModelIdx, setSelectedModelIdx] = useState(0);
 
     // snackbar states
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarSuccessful, setSnackbarSuccessful] = useState(true);
     const [snackbarMessage, setSnackbarMessage] = useState("");
+
+    // modal states
+    const [modelSelectOpen, setModelSelectOpen] = useState(false);
 
     const toggledItemRef = useRef({});
     const apiRef = useTreeViewApiRef();
@@ -69,13 +75,18 @@ export const QueryGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataF
     };
 
     const loadBaseline = async () => {
+        const modelId = INFO.QUERY_GENERATION[selectedModelIdx].ID;
+        const requestBody = new FormData();
+        requestBody.append("model_id", modelId);
+
         const response = await fetch(
             process.env.REACT_APP_BACKEND_URL + `ai_backend/automatic_investigation/query_generation_model/restore_baseline/`,
             {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${cookies.token}`
-                }
+                },
+                body: requestBody
             }
         );
         const rawData = await response.json();
@@ -147,6 +158,8 @@ export const QueryGenerationTrainerDashboard = ({ caseIds, caseOrgIds, caseDataF
                 </AccordionSummary>
                 <AccordionDetails>
                     <Typography>Reset to baseline model</Typography>
+                    <QueryGenModelSelect onSave={(idx) => setSelectedModelIdx(idx)} open={modelSelectOpen} onClose={() => setModelSelectOpen(false)} />
+                    <Button size="small" variant="outlined" onClick={() => setModelSelectOpen(true)}>Select Model</Button>
                     <Typography variant="body2" color="warning" sx={{ fontStyle: "italic" }}>By clicking the button below, you will reset your model to the pre-trained state.</Typography>
                     <Box sx={{ paddingTop: 1, display: "flex", gap: 1 }}>
                         <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Load baseline</Button>
