@@ -6,115 +6,118 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import PuffLoader from "react-spinners/PuffLoader"
-import { DataGrid } from "@mui/x-data-grid";
-import { BiTargetLock } from "react-icons/bi";
+import PuffLoader from "react-spinners/PuffLoader";
+import { DataGrid, GridColDef, GridRowParams, GridRowSelectionModel } from "@mui/x-data-grid";
+import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import { useEffect, useState } from "react";
-import { EditSIEMInfoDialog } from "./EditSIEMInfoDialog";
-import { SIEM_CHOICES } from "../../../constants/platform-choices";
-import { NewSIEMInfoDialog } from "./NewSIEMInfoDialog";
+import { EditSOARInfoDialog } from "./EditSOARInfoDialog";
+import { SOAR_CHOICES } from "../../../constants/platform-choices";
+import { NewSOARInfoDialog } from "./NewSOARInfoDialog";
 import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
 import { useCookies } from "react-cookie";
+import { ActionObject, CallbackFunction, SOARData } from "../../../types/types";
 
-export const SIEMSettings = () => {
-    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
-    const [siemsData, setSiemsData] = useState([]);
-    const [selectedSiemData, setSelectedSiemData] = useState(null);
-    const [selectionModel, setSelectionModel] = useState([]);
-    const [siemsLoading, setSiemsLoading] = useState(true);
+interface TargetSOAR {
+    id: number;
+    [key: string]: any;
+}
 
-    const [newDialogOpen, setNewDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-    const [upcomingAction, setUpcomingAction] = useState({});
+export const SOARSettings = () => {
+    const [cookies, _setCookies, removeCookies] = useCookies(["token"]);
+    const [soarsData, setSoarsData] = useState<SOARData[]>([]);
+    const [selectedSoarData, setSelectedSoarData] = useState<SOARData>();
+    const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
+    const [soarsLoading, setSoarsLoading] = useState<boolean>(true);
 
-    const scheduleUpcomingAction = (func, ...args) => {
+    const [newDialogOpen, setNewDialogOpen] = useState<boolean>(false);
+    const [editDialogOpen, setEditDialogOpen] = useState<boolean>(false);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
+    const [upcomingAction, setUpcomingAction] = useState<ActionObject>({});
+
+    // Stores the function and arguments to execute after confirmation dialog
+    const scheduleUpcomingAction = (func: CallbackFunction, ...args: any[]) => {
         setUpcomingAction({ func, args });
     };
+
     const executeUpcomingAction = async () => {
-        if (upcomingAction) {
-            const { func, args } = upcomingAction;
-            await func(...args);
+        if (upcomingAction.func) {
+            await upcomingAction.func(...(upcomingAction.args || []));
         }
     };
 
-    const handleEditDialogOpen = (params) => {
-        setSelectedSiemData(params.row)
+    const handleEditDialogOpen = (params: any) => {
+        setSelectedSoarData(params.row as SOARData);
         setEditDialogOpen(true);
-    }
+    };
 
     const handleEditDialogClose = () => {
-        setSelectedSiemData(null)
+        setSelectedSoarData(undefined);
         setEditDialogOpen(false);
-    }
+    };
 
-    // fetch the siem data from the backend
-    const updateSiemsData = async () => {
-        setSiemsLoading(true);
+    // fetch the soar data from the backend
+    const updateSoarsData = async () => {
+        setSoarsLoading(true);
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + "siem/siem_info/",
+            process.env.REACT_APP_BACKEND_URL + "soar/soar_info/",
             {
                 headers: {
                     "Authorization": `Bearer ${cookies.token}`
-                },
+                }
             }
         );
         const rawData = await response.json();
-
         if (rawData.code && rawData.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
 
-        const output = [];
-        const targetSIEM = JSON.parse(localStorage.getItem("targetSIEM"));
+        const output: SOARData[] = [];
+        const raw = localStorage.getItem("targetSOAR");
+        const targetSOAR: TargetSOAR | null = raw ? (JSON.parse(raw) as TargetSOAR) : null;
 
-        for (let siem of rawData["message"]) {
-            const formattedData = {
-                id: siem.id,
-                name: siem.name,
-                type: SIEM_CHOICES[siem.siem_type] ? SIEM_CHOICES[siem.siem_type] : "Unknown",
-                url: `${siem.protocol}//${siem.hostname}${siem.base_dir}`,
-                usAPIKey: siem.use_api_key,
-                authType: siem.use_api_key ? "API Key" : "Username / Password",
-                apiKey: siem.api_key,
-                username: siem.username,
-                password: siem.password,
-                isTarget: targetSIEM && siem.id === targetSIEM.id
+        for (let soar of rawData["message"]) {
+            const formattedData: SOARData = {
+                id: soar.id,
+                name: soar.name,
+                type: soar.soar_type in SOAR_CHOICES ? SOAR_CHOICES[soar.soar_type] : "Unknown",
+                url: `${soar.protocol}//${soar.hostname}${soar.base_dir}`,
+                apiKey: soar.api_key,
+                isTarget: !!(targetSOAR && soar.id === targetSOAR.id)
             };
             output.push(formattedData);
         }
 
-        setSiemsData(output);
-        setSiemsLoading(false);
-    }
+        setSoarsData(output);
+        setSoarsLoading(false);
+    };
 
     // the handler of set target button
-    const handleSiemSetTarget = (params) => {
-        const updatedData = Object.assign([], siemsData);
+    const handleSoarSetTarget = (params: GridRowParams) => {
+        const updatedData = [...soarsData];
         for (let index = 0; index < updatedData.length; index++) {
             if (updatedData[index].id === params.row.id) {
                 updatedData[index].isTarget = true;
-                localStorage.setItem("targetSIEM", JSON.stringify(updatedData[index]));
+                localStorage.setItem("targetSOAR", JSON.stringify(updatedData[index]));
             } else {
                 updatedData[index].isTarget = false;
             }
         }
-        setSiemsData(updatedData);
-    }
+        setSoarsData(updatedData);
+    };
 
     // the handler of individual delete buttons
-    const handleSiemDelete = async (params) => {
-        const updatedData = Object.assign([], siemsData);
+    const handleSoarDelete = async (params: GridRowParams) => {
+        const updatedData = [...soarsData];
         let isTarget = false;
         for (let index = 0; index < updatedData.length; index++) {
             if (updatedData[index].id === params.row.id) {
-                isTarget = updatedData[index].isTarget
+                isTarget = updatedData[index].isTarget;
                 const formData = new FormData();
-                formData.append("siem_id", params.row.id);
+                formData.append("soar_id", params.row.id.toString());
 
                 const response = await fetch(
-                    process.env.REACT_APP_BACKEND_URL + "siem/siem_info/",
+                    process.env.REACT_APP_BACKEND_URL + "soar/soar_info/",
                     {
                         method: "DELETE",
                         headers: {
@@ -123,7 +126,7 @@ export const SIEMSettings = () => {
                         body: formData
                     }
                 );
-                const responseJson = response.json();
+                const responseJson = await response.json();
 
                 if (responseJson.code && responseJson.code === "token_not_valid") {
                     removeCookies("token");
@@ -135,15 +138,15 @@ export const SIEMSettings = () => {
             }
         }
         if (isTarget) {
-            localStorage.removeItem("targetSIEM");
+            localStorage.removeItem("targetSOAR");
         }
-        setSiemsData(updatedData);
-    }
+        setSoarsData(updatedData);
+    };
 
     // the handler of the mass delete button
-    const handleSiemMassDelete = async () => {
-        const updatedData = Object.assign([], siemsData);
-        const currentSelectionModel = Object.assign([], selectionModel);
+    const handleSoarMassDelete = async () => {
+        const updatedData = [...soarsData];
+        const currentSelectionModel = [...selectionModel];
         let deletedTarget = false;
         for (let index = 0; index < updatedData.length; index++) {
             let deleted = false;
@@ -154,10 +157,10 @@ export const SIEMSettings = () => {
                     }
 
                     const formData = new FormData();
-                    formData.append("siem_id", currentSelectionModel[selectionModelIndex]);
+                    formData.append("soar_id", currentSelectionModel[selectionModelIndex].toString());
 
                     const response = await fetch(
-                        process.env.REACT_APP_BACKEND_URL + "siem/siem_info/",
+                        process.env.REACT_APP_BACKEND_URL + "soar/soar_info/",
                         {
                             method: "DELETE",
                             headers: {
@@ -166,7 +169,7 @@ export const SIEMSettings = () => {
                             body: formData
                         }
                     );
-                    const responseJson = response.json();
+                    const responseJson = await response.json();
 
                     if (responseJson.code && responseJson.code === "token_not_valid") {
                         removeCookies("token");
@@ -184,80 +187,73 @@ export const SIEMSettings = () => {
             }
         }
         if (deletedTarget) {
-            localStorage.removeItem("targetSIEM");
+            localStorage.removeItem("targetSOAR");
         }
-        setSiemsData(updatedData);
-    }
+        setSoarsData(updatedData);
+    };
 
-    const handleSiemCreate = async (siemInfo) => {
+    const handleSoarCreate = async (soarInfo: SOARData) => {
         const requestBody = new FormData();
-        const urlObj = new URL(siemInfo.url);
-        requestBody.append("name", siemInfo.name);
-        requestBody.append("siem_type", Object.keys(SIEM_CHOICES).find(key => SIEM_CHOICES[key] === siemInfo.type));
+        const urlObj = new URL(soarInfo.url);
+        requestBody.append("name", soarInfo.name);
+        requestBody.append("soar_type", soarInfo.type);
         requestBody.append("protocol", urlObj.protocol);
         requestBody.append("hostname", urlObj.host);
         requestBody.append("base_dir", urlObj.pathname);
-        requestBody.append("use_api_key", siemInfo.useAPIKey);
-        requestBody.append("api_key", siemInfo.apiKey);
-        requestBody.append("username", siemInfo.username);
-        requestBody.append("password", siemInfo.password);
+        requestBody.append("api_key", soarInfo.apiKey);
 
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "siem/siem_info/", {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${cookies.token}`
             },
             body: requestBody
         });
-
-        const responseJson = response.json();
+        const responseJson = await response.json();
 
         if (responseJson.code && responseJson.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
-        
-        updateSiemsData();
-    }
+        updateSoarsData();
+    };
 
-    const handleSiemEdit = async (updatedInfo) => {
+    const handleSoarEdit = async (updatedInfo: SOARData) => {
+        if (!updatedInfo.id) return;
+        
         const requestBody = new FormData();
         const urlObj = new URL(updatedInfo.url);
-        requestBody.append("siem_id", updatedInfo.id);
+        requestBody.append("soar_id", updatedInfo.id.toString());
         requestBody.append("name", updatedInfo.name);
-        requestBody.append("siem_type", Object.keys(SIEM_CHOICES).find(key => SIEM_CHOICES[key] === updatedInfo.type));
+        requestBody.append("soar_type", updatedInfo.type);
         requestBody.append("protocol", urlObj.protocol);
         requestBody.append("hostname", urlObj.host);
         requestBody.append("base_dir", urlObj.pathname);
-        requestBody.append("use_api_key", updatedInfo.useAPIKey);
         requestBody.append("api_key", updatedInfo.apiKey);
-        requestBody.append("username", updatedInfo.username);
-        requestBody.append("password", updatedInfo.password);
 
-        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "siem/siem_info/", {
+        const response = await fetch(process.env.REACT_APP_BACKEND_URL + "soar/soar_info/", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${cookies.token}`
             },
             body: requestBody
         });
-        const responseJson = response.json();
+        const responseJson = await response.json();
 
         if (responseJson.code && responseJson.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
-
-        updateSiemsData();
-    }
+        updateSoarsData();
+    };
 
     const paginationModel = { page: 0, pageSize: 5 };
-    const columns = [
+    const columns: GridColDef[] = [
         { field: "id", type: "number", headerName: "ID", flex: 0.1 },
         { field: "name", type: "string", headerName: "Name", flex: 0.6 },
         { field: "type", type: "string", headerName: "Type", flex: 0.3 },
         { field: "url", type: "string", headerName: "URL", flex: 0.6 },
-        { field: "authType", type: "string", headerName: "Authentication type", flex: 0.6 },
+        { field: "apiKey", type: "string", headerName: "API Key", flex: 0.6 },
         {
             field: "isTarget", type: "boolean", headerName: "Is Target", flex: 0.2,
             renderCell: (params) => (
@@ -272,11 +268,11 @@ export const SIEMSettings = () => {
             field: "actions",
             type: "actions",
             flex: 0.4,
-            renderCell: (params) => (
+            renderCell: (params: any) => (
                 <>
                     <Tooltip title="Set Target">
-                        <IconButton onClick={() => { handleSiemSetTarget(params) }}>
-                            <BiTargetLock />
+                        <IconButton onClick={() => { handleSoarSetTarget(params) }}>
+                            <LocationSearchingIcon />
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Edit">
@@ -286,7 +282,7 @@ export const SIEMSettings = () => {
                     </Tooltip>
                     <Tooltip title="Delete">
                         <IconButton onClick={() => {
-                            scheduleUpcomingAction(handleSiemDelete, params);
+                            scheduleUpcomingAction(handleSoarDelete, params);
                             setConfirmDialogOpen(true);
                         }}>
                             <DeleteIcon />
@@ -298,36 +294,36 @@ export const SIEMSettings = () => {
     ];
 
     useEffect(() => {
-        updateSiemsData();
+        updateSoarsData();
     }, []);
 
     useEffect(() => {
         // automatically set target if only one entry exists
-        if (siemsData.length === 1 && !siemsData[0].isTarget) {
-            const updatedData = Object.assign([], siemsData);
+        if (soarsData.length === 1 && !soarsData[0].isTarget) {
+            const updatedData = [...soarsData];
             updatedData[0].isTarget = true;
-            localStorage.setItem("targetSIEM", JSON.stringify(updatedData[0]));
-            setSiemsData(updatedData);
-        } else if (siemsData.length >= 1) {
-            // modify SIEM data stored in local storage if the react states are changed
-            var targetSIEM = JSON.parse(localStorage.getItem("targetSIEM"));
-            if (!targetSIEM) {
+            localStorage.setItem("targetSOAR", JSON.stringify(updatedData[0]));
+            setSoarsData(updatedData);
+        } else if (soarsData.length >= 1) {
+            // modify SOAR data stored in local storage if the react states are changed
+            let targetSOAR: TargetSOAR | null = JSON.parse(localStorage.getItem("targetSOAR") || "null");
+            if (!targetSOAR) {
                 return;
             }
-            for (let index = 0; index < siemsData.length; index++) {
-                if (siemsData[index].id === targetSIEM.id) {
-                    targetSIEM = { ...siemsData[index] }
-                    localStorage.setItem("targetSIEM", JSON.stringify(targetSIEM));
+            for (let index = 0; index < soarsData.length; index++) {
+                if (soarsData[index].id === targetSOAR.id) {
+                    targetSOAR = { ...soarsData[index] };
+                    localStorage.setItem("targetSOAR", JSON.stringify(targetSOAR));
                     break;
                 }
             }
         }
-    }, [siemsData]);
+    }, [soarsData]);
 
     return (
         <>
             <Dialog open={newDialogOpen} onClose={() => { setNewDialogOpen(false) }} fullWidth>
-                <NewSIEMInfoDialog selectedSiemData={selectedSiemData} onClose={() => { setNewDialogOpen(false) }} onCreate={handleSiemCreate} />
+                <NewSOARInfoDialog onClose={() => { setNewDialogOpen(false) }} onCreate={handleSoarCreate} />
             </Dialog>
 
             <Dialog open={confirmDialogOpen} onClose={() => { setConfirmDialogOpen(false) }} fullWidth>
@@ -335,26 +331,26 @@ export const SIEMSettings = () => {
             </Dialog>
 
             <Dialog open={editDialogOpen} onClose={handleEditDialogClose} fullWidth>
-                <EditSIEMInfoDialog selectedSiemData={selectedSiemData} onClose={handleEditDialogClose} onSave={handleSiemEdit} />
+                <EditSOARInfoDialog selectedSoarData={selectedSoarData} onClose={handleEditDialogClose} onSave={handleSoarEdit} />
             </Dialog>
 
             {
-                siemsLoading ? (
+                soarsLoading ? (
                     <>
-                        <Typography variant="h6" width="50vw" sx={{ display: "inline-block" }}>SIEM Information</Typography>
+                        <Typography variant="h6" width="50vw" sx={{ display: "inline-block" }}>SOAR Information</Typography>
                         <PuffLoader color="#00ffea" />
                     </>
                 ) : (
                     <>
                         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                            <Typography variant="h6" width="50vw" sx={{ display: "inline-block" }}>SIEM Information</Typography>
+                            <Typography variant="h6" width="50vw" sx={{ display: "inline-block" }}>SOAR Information</Typography>
                             <Box>
                                 {
                                     selectionModel.length > 0 && (
                                         <Tooltip title="Delete Selection">
                                             <IconButton onClick={() => {
-                                                scheduleUpcomingAction(handleSiemMassDelete)
-                                                setConfirmDialogOpen(true)
+                                                scheduleUpcomingAction(handleSoarMassDelete);
+                                                setConfirmDialogOpen(true);
                                             }}>
                                                 <DeleteIcon style={{ color: red[500] }} />
                                             </IconButton>
@@ -368,7 +364,7 @@ export const SIEMSettings = () => {
                                     </IconButton>
                                 </Tooltip>
                                 <Tooltip title="Refresh">
-                                    <IconButton onClick={updateSiemsData}>
+                                    <IconButton onClick={updateSoarsData}>
                                         <RefreshIcon />
                                     </IconButton>
                                 </Tooltip>
@@ -376,7 +372,7 @@ export const SIEMSettings = () => {
                         </Box>
                         <Paper sx={{ height: 400, width: "calc(100vw - 125px)" }}>
                             <DataGrid
-                                rows={siemsData}
+                                rows={soarsData}
                                 columns={columns}
                                 initialState={{ pagination: { paginationModel } }}
                                 pageSizeOptions={[5, 10]}
@@ -399,5 +395,5 @@ export const SIEMSettings = () => {
                 )
             }
         </>
-    )
-}
+    );
+};

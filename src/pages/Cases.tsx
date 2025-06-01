@@ -8,11 +8,13 @@ import {
     MenuItem,
     Pagination,
     Select,
+    SelectChangeEvent,
     TextField,
     Typography
 } from "@mui/material";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
+import { CaseData, TargetSOARInfo } from "../types/types";
 import { useNavigate, useParams } from "react-router-dom";
 import { CASE_PAGE_SIZE } from "../constants/page-sizes";
 import SearchIcon from '@mui/icons-material/Search';
@@ -23,73 +25,94 @@ import { Helmet } from "react-helmet";
 import { useCookies } from "react-cookie";
 
 // Sort type labels for dropdown
-const sortTypeMap = {
-    0: "Creation Time Z-A", // descending
-    1: "Creation Time A-Z", // ascending
+const sortTypeMap: Record<string, string> = {
+    "0": "Creation Time Z-A", // descending
+    "1": "Creation Time A-Z", // ascending
 }
 
 export const Cases = () => {
-    const { orgId } = useParams();
+    const { orgId } = useParams<{ orgId: string }>();
     const navigate = useNavigate();
 
     const [cookies, , removeCookies] = useCookies(["token"]);
-    const [cases, setCases] = useState([]);
-    const [pageNumber, setPageNumber] = useState(1);
-    const [pagesTotal, setPagesTotal] = useState(1);
-    const [loading, setLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState("");
-    const [searchString, setSearchString] = useState("");
-    const [sortType, setSortType] = useState(Object.keys(sortTypeMap)[0]);
+    const [cases, setCases] = useState<CaseData[]>([]);
+    const [pageNumber, setPageNumber] = useState<number>(1);
+    const [pagesTotal, setPagesTotal] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [errorMessage, setErrorMessage] = useState<string>("");
+    const [searchString, setSearchString] = useState<string>("");
+    const [sortType, setSortType] = useState<string>("0");
 
     // Load target SOAR platform from local storage
-    const [targetSOAR, setTargetSOAR] = useState(() => {
+    const [targetSOAR, _setTargetSOAR] = useState<TargetSOARInfo | null>(() => {
         const saved = localStorage.getItem("targetSOAR");
-        const initialValue = JSON.parse(saved);
-        return initialValue || null;
+        return saved ? JSON.parse(saved) : null;
     });
 
     // Fetch list of cases from backend
     const getCases = async () => {
+        if (!targetSOAR) return;
+        
         setLoading(true);
         let queryURL = process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&org_id=${orgId}&page=${pageNumber}`;
         if (searchString.length > 0) {
-            queryURL += `&search=${searchString}`;
+            queryURL += `&search=${encodeURIComponent(searchString)}`;
         }
         queryURL += `&time_sort_type=${sortType}`;
 
-        const response = await fetch(queryURL, {
-            headers: {
-                "Authorization": `Bearer ${cookies.token}`
+        try {
+            const response = await fetch(queryURL, {
+                headers: {
+                    "Authorization": `Bearer ${cookies.token}`
+                }
+            });
+
+            const rawData = await response.json();
+
+            // Handle token expiration
+            if (rawData.code === "token_not_valid") {
+                removeCookies("token");
+                return;
             }
-        });
 
-        const rawData = await response.json();
+            if (rawData.error) {
+                setErrorMessage(rawData.error);
+            } else {
+                setErrorMessage("");
+                setCases(rawData.cases || []);
 
-        // Handle token expiration
-        if (rawData.code === "token_not_valid") {
-            removeCookies("token");
-            return;
+                // Compute total pages
+                const entriesRemaining = rawData.total_count % CASE_PAGE_SIZE;
+                setPagesTotal(Math.floor(rawData.total_count / CASE_PAGE_SIZE) + (entriesRemaining ? 1 : 0));
+            }
+        } catch (error) {
+            setErrorMessage("Failed to fetch cases");
+            console.error("Error fetching cases:", error);
+        } finally {
+            setLoading(false);
         }
-
-        if (rawData.error) {
-            setErrorMessage(rawData.error);
-        } else {
-            setErrorMessage("");
-            setCases(rawData.cases);
-
-            // Compute total pages
-            const entriesRemaining = rawData.total_count % CASE_PAGE_SIZE;
-            setPagesTotal(Math.floor(rawData.total_count / CASE_PAGE_SIZE) + (entriesRemaining ? 1 : 0));
-        }
-
-        setLoading(false);
     };
 
-    // Re-fetch cases when SOAR or page number changes
+    // Re-fetch cases when SOAR, page number, search string, or sort type changes
     useEffect(() => {
         if (!targetSOAR) return;
         getCases();
-    }, [targetSOAR, pageNumber]);
+    }, [targetSOAR, pageNumber, searchString, sortType]);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchString(e.target.value);
+    };
+
+    const handleSortChange = (e: SelectChangeEvent<string>) => {
+        setSortType(e.target.value);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            getCases();
+        }
+    };
 
     return (
         <>
@@ -111,20 +134,15 @@ export const Cases = () => {
                             size="small"
                             placeholder="Search for case title"
                             value={searchString}
-                            onInput={(e) => setSearchString(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    getCases();
-                                }
-                            }}
+                            onChange={handleSearchChange}
+                            onKeyDown={handleKeyDown}
                             sx={{ marginRight: 1 }}
                             fullWidth
                         />
                         <Select
                             size="small"
                             value={sortType}
-                            onChange={(e) => setSortType(e.target.value)}
+                            onChange={handleSortChange}
                             sx={{ width: 200 }}
                         >
                             {Object.keys(sortTypeMap).map((key) => (
@@ -144,15 +162,17 @@ export const Cases = () => {
                         ) : (
                             <>
                                 {loading ? (
-                                    <PuffLoader color="#00ffea" />
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <PuffLoader color="#00ffea" />
+                                    </Box>
                                 ) : (
                                     <>
                                         {cases.length > 0 ? (
                                             <List>
-                                                {cases.map((case_data, index) => (
+                                                {cases.map((case_data) => (
                                                     <ListItem
-                                                        key={index}
-                                                        sx={{ display: "block" }}
+                                                        key={case_data.id}
+                                                        sx={{ display: "block", cursor: 'pointer' }}
                                                         onClick={() => navigate(`/organizations/${orgId}/cases/${case_data.id}`)}
                                                     >
                                                         <ListItemIcon sx={{ display: "inline-block", verticalAlign: "middle" }}>
@@ -188,7 +208,7 @@ export const Cases = () => {
                                             </List>
                                         ) : (
                                             <Typography
-                                                color="weak"
+                                                color="textSecondary"
                                                 sx={{ padding: 1, fontStyle: "italic" }}
                                             >
                                                 Cannot find cases in the SOAR platform

@@ -3,8 +3,14 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
+import { CallbackFunction } from '../../types/types';
 
-export const ConfirmationDialog = ({onCancel, onContinue}) => {
+interface ConfirmationDialogProps {
+    onCancel: CallbackFunction,
+    onContinue: CallbackFunction
+}
+
+export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({onCancel, onContinue}) => {
     return (
         <>
             <DialogTitle id="alert-dialog-title">

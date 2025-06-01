@@ -1,7 +1,22 @@
-import { createTheme } from "@mui/material";
+import { createTheme } from "@mui/material/styles";
+import { ThemeOptions } from "@mui/material/styles/createTheme";
+
+// Extend the palette to include "weak"
+declare module "@mui/material/styles" {
+    interface Palette {
+        weak: {
+            main: string;
+        };
+    }
+
+    interface PaletteOptions {
+        weak?: {
+            main: string;
+        };
+    }
+}
 
 export const darkTheme = createTheme({
-    type: "dark",
     shape: {
         borderRadius: 4,
     },
@@ -165,4 +180,4 @@ export const darkTheme = createTheme({
             },
         },
     }
-});
+} as ThemeOptions);

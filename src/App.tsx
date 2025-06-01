@@ -14,7 +14,6 @@ import { Cases } from "./pages/Cases";
 import { CasePage } from "./pages/CasePage";
 import { darkTheme } from "./themes/darkTheme";
 import { TaskPage } from "./pages/TaskPage";
-import { Login } from "./pages/Login";
 import { CookiesProvider } from "react-cookie";
 import { AuthMiddleware } from "./middlewares/authMiddleware";
 

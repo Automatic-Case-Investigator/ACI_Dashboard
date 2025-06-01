@@ -10,23 +10,33 @@ import {
     Typography
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridRowParams, GridRowSelectionModel } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ConfirmationDialog } from "../components/utils/ConfirmationDialog";
 import { red } from "@mui/material/colors";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useCookies } from "react-cookie";
+import { ActionObject, CallbackFunction } from "../types/types";
+
+interface Job {
+    id: string;
+    status: string;
+    result: string;
+    createdAt: Date;
+    finishedAt: Date;
+    elapsedTime: string;
+}
 
 export const Jobs = () => {
     const [cookies, , removeCookies] = useCookies(["token"]);
-    const [errorMessage, setErrorMessage] = useState("");
-    const [jobList, setJobList] = useState([]);
-    const [selectionModel, setSelectionModel] = useState([]);
-    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-    const [upcomingAction, setUpcomingAction] = useState({});
+    const [errorMessage, setErrorMessage] = useState<string>("");
+    const [jobList, setJobList] = useState<Job[]>([]);
+    const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
+    const [upcomingAction, setUpcomingAction] = useState<ActionObject>({});
 
     // DataGrid column definitions
-    const columns = [
+    const columns: GridColDef[] = [
         { field: "id", type: "string", headerName: "ID", flex: 0.5 },
         { field: "status", type: "string", headerName: "Status", flex: 0.3 },
         { field: "result", type: "string", headerName: "Result", flex: 0.3 },
@@ -34,8 +44,11 @@ export const Jobs = () => {
         { field: "finishedAt", type: "dateTime", headerName: "Finished At", flex: 0.4 },
         { field: "elapsedTime", type: "string", headerName: "Elapsed Time (seconds)", flex: 0.3 },
         {
-            field: "actions", type: "actions", headerName: "Actions", flex: 0.2,
-            renderCell: (params) => (
+            field: "actions", 
+            type: "actions", 
+            headerName: "Actions", 
+            flex: 0.2,
+            renderCell: (params: any) => (
                 <Tooltip title="Delete">
                     <IconButton onClick={() => {
                         scheduleUpcomingAction(handleJobDelete, params);
@@ -49,30 +62,29 @@ export const Jobs = () => {
     ];
 
     // Stores the function and arguments to execute after confirmation dialog
-    const scheduleUpcomingAction = (func, ...args) => {
+    const scheduleUpcomingAction = (func: CallbackFunction, ...args: any[]) => {
         setUpcomingAction({ func, args });
     };
 
     const executeUpcomingAction = async () => {
-        if (upcomingAction) {
-            const { func, args } = upcomingAction;
-            await func(...args);
+        if (upcomingAction.func) {
+            await upcomingAction.func(...(upcomingAction.args || []));
         }
         getJobList();
     };
 
     // Converts Unix timestamps to JS Date objects for display
-    const evaluateTimestamp = (jobs) => {
+    const evaluateTimestamp = (jobs: Job[]): Job[] => {
         return jobs.map(job => ({
             ...job,
-            createdAt: new Date(job.createdAt * 1000),
-            finishedAt: new Date(job.finishedAt * 1000),
+            createdAt: new Date(Number(job.createdAt) * 1000),
+            finishedAt: new Date(Number(job.finishedAt) * 1000),
         }));
     };
 
     // Handles deletion of a single job
-    const handleJobDelete = async (params) => {
-        const updatedList = [...jobList];
+    const handleJobDelete = async (params: GridRowParams) => {
+        let updatedList = [...jobList];
         const index = updatedList.findIndex(job => job.id === params.row.id);
         if (index !== -1) {
             const formData = new FormData();
@@ -100,7 +112,7 @@ export const Jobs = () => {
 
     // Handles bulk deletion of selected jobs
     const handleJobMassDelete = async () => {
-        const updatedList = [];
+        const updatedList: Job[] = [];
         const selected = [...selectionModel];
 
         for (const job of jobList) {
@@ -122,37 +134,40 @@ export const Jobs = () => {
                     removeCookies("token");
                     return;
                 }
-
-                // Remove from selection
-                selected.splice(selected.indexOf(job.id), 1);
             } else {
                 updatedList.push(job);
             }
         }
 
         setJobList(evaluateTimestamp(updatedList));
+        setSelectionModel([]);
     };
 
     // Fetch jobs from the backend
     const getJobList = async () => {
-        const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `jobs/`,
-            {
-                headers: { "Authorization": `Bearer ${cookies.token}` }
+        try {
+            const response = await fetch(
+                process.env.REACT_APP_BACKEND_URL + `jobs/`,
+                {
+                    headers: { "Authorization": `Bearer ${cookies.token}` }
+                }
+            );
+            const rawData = await response.json();
+
+            if (rawData.code === "token_not_valid") {
+                removeCookies("token");
+                return;
             }
-        );
-        const rawData = await response.json();
 
-        if (rawData.code === "token_not_valid") {
-            removeCookies("token");
-            return;
-        }
-
-        if (rawData.error) {
-            setErrorMessage(rawData.error);
-        } else {
-            setErrorMessage("");
-            setJobList(evaluateTimestamp(rawData.jobs));
+            if (rawData.error) {
+                setErrorMessage(rawData.error);
+            } else {
+                setErrorMessage("");
+                setJobList(evaluateTimestamp(rawData.jobs || []));
+            }
+        } catch (error) {
+            setErrorMessage("Failed to fetch jobs");
+            console.error("Error fetching jobs:", error);
         }
     };
 

@@ -1,16 +1,23 @@
-import { Button, Drawer, Menu, MenuItem, Stack, Tooltip } from "@mui/material"
-import { makeStyles } from '@mui/styles';
+import {
+    Button,
+    Drawer,
+    Menu,
+    MenuItem,
+    Stack,
+    Tooltip,
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import { useNavigate } from "react-router-dom";
-import TokenIcon from '@mui/icons-material/Token';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import CorporateFareIcon from '@mui/icons-material/CorporateFare';
-import MemoryIcon from '@mui/icons-material/Memory';
-import { useState } from "react";
+import TokenIcon from "@mui/icons-material/Token";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import CorporateFareIcon from "@mui/icons-material/CorporateFare";
+import MemoryIcon from "@mui/icons-material/Memory";
+import { MouseEvent, useState } from "react";
 import { useCookies } from "react-cookie";
 
 const drawerWidth = 80;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     drawer: {
         width: drawerWidth,
         flexShrink: 0,
@@ -25,22 +32,22 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-
-export const VerticalNavbar = () => {
-    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
-    const [anchorEl, setAnchorEL] = useState(null);
+export const VerticalNavbar: React.FC = () => {
+    const [_cookies, _setCookies, removeCookies] = useCookies(["token"]);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const classes = useStyles();
     const navigate = useNavigate();
 
     const handleClose = () => {
-        setAnchorEL(null);
-    }
+        setAnchorEl(null);
+    };
 
     const handleLogout = () => {
         handleClose();
         removeCookies("token");
-    }
+        navigate("/login", { replace: true });
+    };
 
     return (
         <>
@@ -73,27 +80,28 @@ export const VerticalNavbar = () => {
                             <MemoryIcon />
                         </Button>
                     </Tooltip>
-                    <Button sx={{ position: "absolute", bottom: 0, height: 50 }} fullWidth onClick={(e) => { setAnchorEL(e.currentTarget) }}>
+                    <Button sx={{ position: "absolute", bottom: 0, height: 50 }} fullWidth onClick={(e: MouseEvent<HTMLButtonElement>) => { setAnchorEl(e.currentTarget) }}>
                         <AccountCircleIcon />
                     </Button>
                 </Stack>
             </Drawer>
+
             <Menu
                 id="basic-menu"
                 anchorEl={anchorEl}
                 open={open}
                 onClose={handleClose}
                 anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
+                    vertical: "top",
+                    horizontal: "right",
                 }}
                 transformOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right',
+                    vertical: "bottom",
+                    horizontal: "right",
                 }}
             >
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
         </>
-    )
-}
+    );
+};

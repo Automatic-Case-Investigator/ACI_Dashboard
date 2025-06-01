@@ -4,6 +4,7 @@ import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import { useNavigate, useParams } from "react-router-dom";
+import { TargetSOARInfo, TaskData, TaskLogData } from "../types/types";
 import PuffLoader from "react-spinners/PuffLoader"
 import { darkTheme } from "../themes/darkTheme";
 import { useEffect, useState } from "react";
@@ -15,21 +16,24 @@ import "../css/markdown.css";
 export const TaskPage = () => {
     const { orgId, caseId, taskId } = useParams();
 
-    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
+    const [cookies, _setCookies, removeCookies] = useCookies(["token"]);
     const [errorMessage, setErrorMessage] = useState("");
-    const [taskData, setTaskData] = useState(null);
-    const [taskLogs, setTaskLogs] = useState([]);
-    const [targetSOAR, setTargetSOAR] = useState(() => {
-        const saved = localStorage.getItem("targetSOAR");
-        const initialValue = JSON.parse(saved);
-        return initialValue || null;
+    const [taskData, setTaskData] = useState<TaskData | null>(null);
+    const [taskLogs, setTaskLogs] = useState<Array<TaskLogData>>([]);
+    const [targetSOAR, _setTargetSOAR] = useState<TargetSOARInfo | null>(() => {
+        try {
+            const saved = localStorage.getItem("targetSOAR");
+            return saved ? JSON.parse(saved) : null;
+        } catch {
+            return null;
+        }
     });
 
     const navigate = useNavigate();
 
     const getTaskData = async () => {
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&org_id=${orgId}&task_id=${taskId}`,
+            process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR?.id}&org_id=${orgId}&task_id=${taskId}`,
             {
                 headers: {
                     "Authorization": `Bearer ${cookies.token}`
@@ -53,7 +57,7 @@ export const TaskPage = () => {
 
     const getTaskLogs = async () => {
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `soar/task_log/?soar_id=${targetSOAR.id}&task_id=${taskId}`,
+            process.env.REACT_APP_BACKEND_URL + `soar/task_log/?soar_id=${targetSOAR?.id}&task_id=${taskId}`,
             {
                 headers: {
                     "Authorization": `Bearer ${cookies.token}`

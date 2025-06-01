@@ -11,51 +11,66 @@ import {
 } from "@mui/material";
 import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import { Helmet } from "react-helmet";
-import PuffLoader from "react-spinners/PuffLoader"
+import PuffLoader from "react-spinners/PuffLoader";
 import { useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
+import { OrganizationData, TargetSOARInfo } from "../types/types";
 
 export const Organizations = () => {
-    const [errorMessage, setErrorMessage] = useState("");
-    const [organizations, setOrganizations] = useState([]);
+    const [errorMessage, setErrorMessage] = useState<string>("");
+    const [organizations, setOrganizations] = useState<OrganizationData[]>([]);
     const [cookies, , removeCookies] = useCookies(["token"]);
+    const [loading, setLoading] = useState<boolean>(true);
 
     // Load selected SOAR platform from localStorage
-    const [targetSOAR, setTargetSOAR] = useState(() => {
+    const [targetSOAR, _setTargetSOAR] = useState<TargetSOARInfo | null>(() => {
         const saved = localStorage.getItem("targetSOAR");
-        const initialValue = JSON.parse(saved);
-        return initialValue || null;
+        return saved ? JSON.parse(saved) : null;
     });
 
     const navigate = useNavigate();
 
     // Fetch organizations for the selected SOAR platform
     const getOrganizations = async () => {
-        const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `soar/organizations/?soar_id=${targetSOAR.id}`,
-            {
-                headers: {
-                    "Authorization": `Bearer ${cookies.token}`
+        if (!targetSOAR) return;
+        
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_BACKEND_URL}soar/organizations/?soar_id=${targetSOAR.id}`,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${cookies.token}`
+                    }
                 }
+            );
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
-        );
-        const rawData = await response.json();
 
-        if (rawData.code === "token_not_valid") {
-            removeCookies("token");
-            return;
-        }
+            const rawData = await response.json();
 
-        if (rawData.error) {
-            setErrorMessage(rawData.error);
-        } else {
-            setErrorMessage("");
-            setOrganizations(rawData.organizations);
+            if (rawData.code === "token_not_valid") {
+                removeCookies("token");
+                return;
+            }
+
+            if (rawData.error) {
+                setErrorMessage(rawData.error);
+            } else {
+                setErrorMessage("");
+                setOrganizations(rawData.organizations || []);
+            }
+        } catch (error) {
+            setErrorMessage("Failed to fetch organizations");
+            console.error("Error fetching organizations:", error);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
-        if (!targetSOAR) return;
         getOrganizations();
     }, [targetSOAR]);
 
@@ -74,14 +89,26 @@ export const Organizations = () => {
                             <Typography variant="body1">{errorMessage}</Typography>
                         ) : (
                             <>
-                                {organizations.length === 0 ? (
-                                    <PuffLoader color="#00ffea" />
+                                {loading ? (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                                        <PuffLoader color="#00ffea" />
+                                    </Box>
+                                ) : organizations.length === 0 ? (
+                                    <Typography variant="body2" color="textSecondary">
+                                        No organizations found
+                                    </Typography>
                                 ) : (
                                     <List>
-                                        {organizations.map((org, index) => (
+                                        {organizations.map((org) => (
                                             <ListItem
-                                                key={index}
-                                                sx={{ display: "block" }}
+                                                key={org.id}
+                                                sx={{ 
+                                                    display: "block",
+                                                    cursor: 'pointer',
+                                                    '&:hover': {
+                                                        backgroundColor: 'action.hover'
+                                                    }
+                                                }}
                                                 onClick={() => navigate(`/organizations/${org.id}/cases`)}
                                             >
                                                 <ListItemIcon sx={{ display: "inline-block", verticalAlign: "middle" }}>
@@ -126,5 +153,5 @@ export const Organizations = () => {
                 </Box>
             </Box>
         </>
-    )
-}
+    );
+};

@@ -1,4 +1,5 @@
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, IconButton, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
+import { CaseData, TargetSIEMInfo, TargetSOARInfo, TaskData } from "../types/types";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -22,182 +23,179 @@ import { useCookies } from "react-cookie";
 import "../css/markdown.css"
 
 export const CasePage = () => {
-    const { orgId, caseId } = useParams();
-
+    const { orgId = "", caseId = "" } = useParams<{ orgId: string; caseId: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [cookies, setCookies, removeCookies] = useCookies(["token"]);
-    const [errorMessage, setErrorMessage] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [snackbarSuccessful, setSnackbarSuccessful] = useState(true);
-    const [caseData, setCaseData] = useState();
-    const [taskList, setTaskList] = useState([]);
+    const [cookies, , removeCookies] = useCookies(["token"]);
+    const [errorMessage, setErrorMessage] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(true);
+    const [snackbarMessage, setSnackbarMessage] = useState<string>("");
+    const [snackbarSuccessful, setSnackbarSuccessful] = useState<boolean>(true);
+    const [caseData, setCaseData] = useState<CaseData | null>(null);
+    const [taskList, setTaskList] = useState<TaskData[]>([]);
     const currentTab = searchParams.get('tab') || "0";
 
-    const [targetSOAR, setTargetSOAR] = useState(() => {
-        const saved = localStorage.getItem("targetSOAR");
-        const initialValue = JSON.parse(saved);
-        return initialValue || null;
+    const [targetSOAR, _setTargetSOAR] = useState<TargetSOARInfo | null>(() => {
+        try {
+            const saved = localStorage.getItem("targetSOAR");
+            return saved ? JSON.parse(saved) : null;
+        } catch {
+            return null;
+        }
     });
-    const [targetSIEM, setTargetSIEM] = useState(() => {
-        const saved = localStorage.getItem("targetSIEM");
-        const initialValue = JSON.parse(saved);
-        return initialValue || null;
+
+    const [targetSIEM, _setTargetSIEM] = useState<TargetSIEMInfo | null>(() => {
+        try {
+            const saved = localStorage.getItem("targetSIEM");
+            return saved ? JSON.parse(saved) : null;
+        } catch {
+            return null;
+        }
     });
 
     const navigate = useNavigate();
 
     // automatic investigation states
-    const [enableActivityGeneration, setEnableActivityGeneration] = useState(true);
-    const [enableSIEMInvestigation, setEnableSIEMInvestigation] = useState(true);
+    const [enableActivityGeneration, setEnableActivityGeneration] = useState<boolean>(true);
+    const [enableSIEMInvestigation, setEnableSIEMInvestigation] = useState<boolean>(true);
 
     // component open states
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
 
     const getCaseData = async () => {
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `soar/case/?soar_id=${targetSOAR.id}&case_id=${caseId}`,
+            `${process.env.REACT_APP_BACKEND_URL}soar/case/?soar_id=${targetSOAR?.id}&case_id=${caseId}`,
             {
                 headers: {
-                    "Authorization": `Bearer ${cookies.token}`
-                }
+                    Authorization: `Bearer ${cookies.token}`,
+                },
             }
         );
         const rawData = await response.json();
 
-        if (rawData.code && rawData.code === "token_not_valid") {
+        if (rawData.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
 
-        if (rawData["error"]) {
-            setErrorMessage(rawData["error"])
+        if (rawData.error) {
+            setErrorMessage(rawData.error);
         } else {
-            setErrorMessage("")
-            setCaseData(rawData)
+            setErrorMessage("");
+            setCaseData(rawData);
         }
-    }
+    };
 
     const getTaskList = async () => {
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `soar/task/?soar_id=${targetSOAR.id}&org_id=${orgId}&case_id=${caseId}`,
+            `${process.env.REACT_APP_BACKEND_URL}soar/task/?soar_id=${targetSOAR?.id}&org_id=${orgId}&case_id=${caseId}`,
             {
                 headers: {
-                    "Authorization": `Bearer ${cookies.token}`
-                }
+                    Authorization: `Bearer ${cookies.token}`,
+                },
             }
         );
         const rawData = await response.json();
 
-        if (rawData.code && rawData.code === "token_not_valid") {
+        if (rawData.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
 
-        if (rawData["error"]) {
-            setErrorMessage(rawData["error"])
+        if (rawData.error) {
+            setErrorMessage(rawData.error);
         } else {
-            setErrorMessage("")
-            setTaskList(rawData["tasks"])
+            setErrorMessage("");
+            setTaskList(rawData.tasks);
         }
-    }
+    };
 
     const generateTask = async () => {
         const requestBody = new FormData();
-        requestBody.append("soar_id", targetSOAR.id);
+        requestBody.append("soar_id", targetSOAR?.id || "");
         requestBody.append("case_id", caseId);
 
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `ai_backend/task_generation_model/generate/`,
+            `${process.env.REACT_APP_BACKEND_URL}ai_backend/task_generation_model/generate/`,
             {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${cookies.token}`
+                    Authorization: `Bearer ${cookies.token}`,
                 },
-                body: requestBody
+                body: requestBody,
             }
         );
+
         const rawData = await response.json();
-        if (rawData.code && rawData.code === "token_not_valid") {
+
+        if (rawData.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
 
-        if (rawData.message && rawData.message === "Success") {
+        if (rawData.message === "Success") {
             setSnackbarMessage("Successfully created task generation job. Check jobs page for details.");
             setSnackbarSuccessful(true);
-            setSnackbarOpen(true);
-        } else if (rawData.error) {
-            setSnackbarMessage(rawData.error);
-            setSnackbarSuccessful(false);
-            setSnackbarOpen(true);
         } else {
-            setSnackbarMessage("Failed communicating with the backend. contact administrators for help.");
+            setSnackbarMessage(rawData.error || "Failed communicating with the backend. Contact administrators.");
             setSnackbarSuccessful(false);
-            setSnackbarOpen(true);
         }
-    }
+        setSnackbarOpen(true);
+    };
 
     const investigateTask = async () => {
         const requestBody = new FormData();
-        requestBody.append("siem_id", targetSIEM.id);
-        requestBody.append("soar_id", targetSOAR.id);
+        requestBody.append("siem_id", targetSIEM?.id || "");
+        requestBody.append("soar_id", targetSOAR?.id || "");
         requestBody.append("org_id", orgId);
         requestBody.append("case_id", caseId);
-        requestBody.append("generate_activities", enableActivityGeneration ? 1 : 0);
-        requestBody.append("investigate_siem", enableSIEMInvestigation ? 1 : 0);
+        requestBody.append("generate_activities", enableActivityGeneration ? "1" : "0");
+        requestBody.append("investigate_siem", enableSIEMInvestigation ? "1" : "0");
 
         const response = await fetch(
-            process.env.REACT_APP_BACKEND_URL + `ai_backend/automatic_investigation/investigate/`,
+            `${process.env.REACT_APP_BACKEND_URL}ai_backend/automatic_investigation/investigate/`,
             {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${cookies.token}`
+                    Authorization: `Bearer ${cookies.token}`,
                 },
-                body: requestBody
+                body: requestBody,
             }
         );
+
         const rawData = await response.json();
-        if (rawData.code && rawData.code === "token_not_valid") {
+
+        if (rawData.code === "token_not_valid") {
             removeCookies("token");
             return;
         }
 
-        if (rawData.message && rawData.message === "Success") {
+        if (rawData.message === "Success") {
             setSnackbarMessage("Successfully created case investigation job. Check jobs page for details.");
             setSnackbarSuccessful(true);
-            setSnackbarOpen(true);
-        } else if (rawData.error) {
-            setSnackbarMessage(rawData.error);
-            setSnackbarSuccessful(false);
-            setSnackbarOpen(true);
         } else {
-            setSnackbarMessage("Failed communicating with the backend. contact administrators for help.");
+            setSnackbarMessage(rawData.error || "Failed communicating with the backend. Contact administrators.");
             setSnackbarSuccessful(false);
-            setSnackbarOpen(true);
         }
-    }
+        setSnackbarOpen(true);
+    };
 
     const refreshTasks = () => {
         getCaseData();
         getTaskList();
-    }
+    };
 
     const refresh = async () => {
         setLoading(true);
         await refreshTasks();
         setLoading(false);
-    }
+    };
 
     const debouncedGenerateTask = debounce(generateTask, 300);
     const debouncedInvestigateTask = debounce(investigateTask, 300);
 
     useEffect(() => {
-        if (!targetSOAR) {
-            return;
-        }
-
+        if (!targetSOAR) return;
         refresh();
     }, [targetSOAR]);
 
@@ -323,5 +321,5 @@ export const CasePage = () => {
                 </Box>
             </Box>
         </>
-    )
-}
+    );
+};

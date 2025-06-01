@@ -1,10 +1,9 @@
-
+import { SOARSettings } from "../components/settings/SOARSettings/SOARSettings";
+import { SIEMSettings } from "../components/settings/SIEMSettings/SIEMSettings";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
-import { Box, Typography } from "@mui/material";
-import { SOARSettings } from "../components/settings/SOARSettings/SOARSettings";
 import { Helmet } from "react-helmet";
-import { SIEMSettings } from "../components/settings/SIEMSettings/SIEMSettings";
+import { Box } from "@mui/material";
 
 export const Settings = () => {
     return (
