@@ -196,7 +196,7 @@ export const SOARSettings = () => {
         const requestBody = new FormData();
         const urlObj = new URL(soarInfo.url);
         requestBody.append("name", soarInfo.name);
-        requestBody.append("soar_type", soarInfo.type);
+        requestBody.append("soar_type", Object.keys(SOAR_CHOICES).find(key => SOAR_CHOICES[key] === soarInfo.type) || '');
         requestBody.append("protocol", urlObj.protocol);
         requestBody.append("hostname", urlObj.host);
         requestBody.append("base_dir", urlObj.pathname);
