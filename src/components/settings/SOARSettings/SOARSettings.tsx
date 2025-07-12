@@ -225,7 +225,7 @@ export const SOARSettings = () => {
         const urlObj = new URL(updatedInfo.url);
         requestBody.append("soar_id", updatedInfo.id.toString());
         requestBody.append("name", updatedInfo.name);
-        requestBody.append("soar_type", updatedInfo.type);
+        requestBody.append("soar_type", Object.keys(SOAR_CHOICES).find(key => SOAR_CHOICES[key] === updatedInfo.type) || '');
         requestBody.append("protocol", urlObj.protocol);
         requestBody.append("hostname", urlObj.host);
         requestBody.append("base_dir", urlObj.pathname);
