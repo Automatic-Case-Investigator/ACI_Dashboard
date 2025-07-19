@@ -61,7 +61,7 @@ export const darkTheme = createTheme({
             styleOverrides: {
                 root: {
                     backdropFilter: 'blur(8px)',
-                    backgroundColor: '#CCCCFF05',
+                    backgroundColor: '#121215',
                 },
             },
         },

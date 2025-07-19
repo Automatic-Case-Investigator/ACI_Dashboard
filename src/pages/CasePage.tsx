@@ -1,4 +1,4 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, IconButton, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, IconButton, Snackbar, Tooltip, Typography } from "@mui/material";
 import { CaseData, TargetSIEMInfo, TargetSOARInfo, TaskData } from "../types/types";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
@@ -21,6 +21,7 @@ import { debounce } from 'lodash';
 import { useCookies } from "react-cookie";
 
 import "../css/markdown.css"
+import { SIEMQueryAgent } from "../components/siem_query_agent/SIEMQueryAgent";
 
 export const CasePage = () => {
     const { orgId = "", caseId = "" } = useParams<{ orgId: string; caseId: string }>();
@@ -293,20 +294,20 @@ export const CasePage = () => {
                                                             </AccordionSummary>
                                                             <AccordionDetails>
                                                                 <Typography color="weak" sx={{ fontStyle: "italic" }}>
-                                                                    (Not yet implemented) This is responsible for automatically querying the SIEM and correlating security events to perform
+                                                                    This is responsible for automatically querying the SIEM and correlating security events to perform
                                                                     investigation. This must be used with activities existing in the case. This can be achieved by either
                                                                     enabling the activity generation or manually writing down investigation activities.
                                                                 </Typography>
                                                                 <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Enable</Typography>
                                                                 <Checkbox sx={{ paddingLeft: 0 }} color="secondary" checked={enableSIEMInvestigation} onChange={() => setEnableSIEMInvestigation(!enableSIEMInvestigation)} />
-                                                                <br />
-                                                                <Typography variant="body1" sx={{ display: "inline-block", width: "30vw" }}>Search depth</Typography>
-                                                                <TextField size="small" type="number" />
                                                             </AccordionDetails>
                                                         </Accordion>
                                                         <Button sx={{ marginTop: 1 }} size="small" color="secondary" variant="outlined" onClick={debouncedInvestigateTask}>Investigate</Button>
                                                     </TabPanel>
                                                 </TabContext>
+                                                <Box sx={{ position: "fixed", bottom: 12, right: 12 }}>
+                                                    <SIEMQueryAgent />
+                                                </Box>
                                             </>
                                         ) : (
                                             <PuffLoader color="#00ffea" />
