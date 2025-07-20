@@ -33,6 +33,12 @@ export const Login = () => {
         setPassword(e.target.value);
     };
 
+    const handlePasswordKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            getUserToken();
+        }
+    };
+
     const getUserToken = async () => {
         setLoading(true);
         setMessage("");
@@ -115,7 +121,8 @@ export const Login = () => {
                         label="Password" 
                         type="password" 
                         value={password} 
-                        onChange={handlePasswordChange} 
+                        onChange={handlePasswordChange}
+                        onKeyDown={handlePasswordKeyDown}
                         fullWidth 
                     />
                     <br />
