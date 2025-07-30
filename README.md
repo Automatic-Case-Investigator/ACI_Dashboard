@@ -4,13 +4,13 @@ This is the main local frontend intended to control the local backend for invest
 
 ## Supported Platforms
 
-Currently, only The Hive is integrated. More integrations for SIEM and EDR would be added for case investigation.
+See supported platforms for the [main backend](https://github.com/Automatic-Case-Investigator/ACI_Backend)
 
 ## Installation
 
 ### Local installation
 
-Copy the sample.env to .env and modify some of the settings based on your conditions:
+Copy the sample.env to .env and customize it for your setup:
 ```bash
 cp sample.env .env
 ```
@@ -23,8 +23,8 @@ npm start
 
 ### Docker
 
-Build the image and create a docker container:
+Build and run the docker compose project:
 ```bash
-docker build -t your-image-name .
-docker run -p 3000:3000 your-image-name
+sudo docker compose build
+sudo docker compose up
 ```
