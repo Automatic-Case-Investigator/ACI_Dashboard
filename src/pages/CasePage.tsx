@@ -1,5 +1,5 @@
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, IconButton, Snackbar, Tooltip, Typography } from "@mui/material";
-import { CaseData, TargetSIEMInfo, TargetSOARInfo, TaskData } from "../types/types";
+import { CaseData, ObservableData, TargetSIEMInfo, TargetSOARInfo, TaskData } from "../types/types";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -22,6 +22,7 @@ import { useCookies } from "react-cookie";
 
 import "../css/markdown.css"
 import { SIEMQueryAgent } from "../components/siem_query_agent/SIEMQueryAgent";
+import { ObservableList } from "../components/observable_list/ObservableList";
 
 export const CasePage = () => {
     const { orgId = "", caseId = "" } = useParams<{ orgId: string; caseId: string }>();
@@ -34,6 +35,7 @@ export const CasePage = () => {
     const [snackbarSuccessful, setSnackbarSuccessful] = useState<boolean>(true);
     const [caseData, setCaseData] = useState<CaseData | null>(null);
     const [taskList, setTaskList] = useState<TaskData[]>([]);
+    const [observables, setObservables] = useState<ObservableData[]>([]);
     const currentTab = searchParams.get('tab') || "0";
 
     const [targetSOAR, _setTargetSOAR] = useState<TargetSOARInfo | null>(() => {
@@ -111,6 +113,30 @@ export const CasePage = () => {
         }
     };
 
+    const getObservables = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}soar/observables/?soar_id=${targetSOAR?.id}&org_id=${orgId}&case_id=${caseId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${cookies.token}`,
+                },
+            }
+        );
+        const rawData = await response.json();
+
+        if (rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
+        if (rawData.error) {
+            setErrorMessage(rawData.error);
+        } else {
+            setErrorMessage("");
+            setObservables(rawData.observables);
+        }
+    };
+
     const generateTask = async () => {
         const requestBody = new FormData();
         requestBody.append("soar_id", targetSOAR?.id || "");
@@ -181,14 +207,15 @@ export const CasePage = () => {
         setSnackbarOpen(true);
     };
 
-    const refreshTasks = () => {
+    const updateData = () => {
         getCaseData();
+        getObservables();
         getTaskList();
     };
 
     const refresh = async () => {
         setLoading(true);
-        await refreshTasks();
+        await updateData();
         setLoading(false);
     };
 
@@ -263,17 +290,21 @@ export const CasePage = () => {
                                                         }}>
 
                                                             <Tab label="General" value="0" disableRipple />
-                                                            <Tab label="Tasks" value="1" disableRipple />
-                                                            <Tab label="Automatic Investigation" value="2" disableRipple />
+                                                            <Tab label="Observables" value="1" disableRipple />
+                                                            <Tab label="Tasks" value="2" disableRipple />
+                                                            <Tab label="Automatic Investigation" value="3" disableRipple />
 
                                                         </TabList>
                                                     </Box>
                                                     <TabPanel value="0"><MarkdownPreview source={caseData.description} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main }} /></TabPanel>
                                                     <TabPanel value="1">
+                                                        <ObservableList observableList={observables} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
+                                                    </TabPanel>
+                                                    <TabPanel value="2">
                                                         <Button size="small" color="secondary" variant="outlined" onClick={debouncedGenerateTask}>Generate Tasks</Button>
                                                         <TaskList taskList={taskList} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
                                                     </TabPanel>
-                                                    <TabPanel value="2">
+                                                    <TabPanel value="3">
                                                         <Typography variant="h6">Options</Typography>
                                                         <Accordion>
                                                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>

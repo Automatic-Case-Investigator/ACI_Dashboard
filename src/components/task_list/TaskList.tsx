@@ -198,7 +198,7 @@ export const TaskList: React.FC<TaskListProps> = ({
                         />
                     </Dialog>
 
-                    <Paper sx={{ marginTop: 2, height: 400, width: "calc(100vw - 160px)" }}>
+                    <Paper sx={{ marginTop: 2, height: "calc(100vh - 200px)", width: "calc(100vw - 160px)" }}>
                         <DataGrid
                             rows={formattedTaskList}
                             columns={columns}

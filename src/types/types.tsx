@@ -45,6 +45,8 @@ export interface CaseData {
     id: string;
     title: string;
     description: string;
+    tlp: number;
+    pap: number;
 }
 
 export interface CaseDataForest {
@@ -70,6 +72,20 @@ export interface TaskLogData {
     message: string;
     createdAt: Date;
     createdBy: string;
+}
+
+export interface ObservableData {
+    id: string;
+    type: string,
+    createdBy: string;
+    createdAt: Date;
+    dataType: string;
+    data: string;
+    startDate: Date;
+    tlp: number;
+    pap: number;
+    ioc: boolean;
+    reports: any;
 }
 
 export interface ModelInfo {
