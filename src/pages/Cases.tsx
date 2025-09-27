@@ -23,6 +23,7 @@ import WorkIcon from '@mui/icons-material/Work';
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useCookies } from "react-cookie";
+import { debounce } from "lodash";
 
 // Sort type labels for dropdown
 const sortTypeMap: Record<string, string> = {
@@ -93,11 +94,7 @@ export const Cases = () => {
         }
     };
 
-    // Re-fetch cases when SOAR, page number, search string, or sort type changes
-    useEffect(() => {
-        if (!targetSOAR) return;
-        getCases();
-    }, [targetSOAR, pageNumber, searchString, sortType]);
+    const debouncedGetCases = debounce(getCases, 500);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchString(e.target.value);
@@ -113,6 +110,18 @@ export const Cases = () => {
             getCases();
         }
     };
+
+    useEffect(() => {
+        if (!targetSOAR) return;
+        getCases();
+    }, [targetSOAR, pageNumber, sortType]);
+
+    useEffect(() => {
+        if (!targetSOAR) return;
+
+        debouncedGetCases();
+        return () => debouncedGetCases.cancel();
+    }, [searchString]);
 
     return (
         <>
