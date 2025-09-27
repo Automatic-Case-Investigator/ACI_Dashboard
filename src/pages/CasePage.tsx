@@ -325,18 +325,20 @@ export const CasePage = () => {
                                                                 <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
                                                                     This is responsible for generating high-level investigation objectives for understanding the cause of the security case and correlating relevant events.
                                                                 </Typography>
-                                                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 1, ml: 1 }}>
+                                                                <Box sx={{ display: "flex", flexDirection: "column", mt: 1, ml: 1, mb: 2 }}>
                                                                     <FormControlLabel
                                                                         label="Enable Web Search"
                                                                         control={
                                                                             <Checkbox
-                                                                                sx={{ paddingLeft: 0 }}
                                                                                 color="secondary"
                                                                                 checked={enableWebSearch.task_generation}
                                                                                 onChange={() => setEnableWebSearch({ ...enableWebSearch, task_generation: !enableWebSearch.task_generation })}
                                                                             />
                                                                         }
                                                                     />
+                                                                    <Typography variant="caption" color="text.secondary">
+                                                                        Allows the system to perform smart internet searches and gather up-to-date knowledge as context. This increases the amount of time required as it performs smart searches and text summarization.
+                                                                    </Typography>
                                                                 </Box>
                                                                 <Button size="small" variant="outlined" color="secondary" onClick={debouncedGenerateTask}>Run</Button>
                                                             </AccordionDetails>
@@ -356,20 +358,22 @@ export const CasePage = () => {
                                                                         <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
                                                                             This is responsible for generating detailed activities to be performed by analysts based on each task present in the case.
                                                                         </Typography>
-                                                                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 1, ml: 1 }}>
+                                                                        <Box sx={{ display: "flex", flexDirection: "column", mt: 1, ml: 1, mb: 2 }}>
                                                                             <FormControlLabel
                                                                                 label="Enable Web Search"
                                                                                 control={
                                                                                     <Checkbox
-                                                                                        sx={{ paddingLeft: 0 }}
                                                                                         color="secondary"
                                                                                         checked={enableWebSearch.activity_generation}
                                                                                         onChange={() => setEnableWebSearch({ ...enableWebSearch, activity_generation: !enableWebSearch.activity_generation })}
                                                                                     />
                                                                                 }
                                                                             />
+                                                                            <Typography variant="caption" color="text.secondary">
+                                                                                Allows the system to perform smart internet searches and gather up-to-date knowledge as context. This increases the amount of time required as it performs smart searches and text summarization.
+                                                                            </Typography>
                                                                         </Box>
-                                                                        <Button size="small" variant="outlined" color="secondary" onClick={() => {debouncedInvestigateTask(true, false)}}>Run</Button>
+                                                                        <Button size="small" variant="outlined" color="secondary" onClick={() => { debouncedInvestigateTask(true, false) }}>Run</Button>
                                                                     </AccordionDetails>
                                                                 </Accordion>
 
@@ -382,23 +386,25 @@ export const CasePage = () => {
                                                                         <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
                                                                             This is responsible for automatically querying the SIEM and correlating security events to perform investigation. This must be used with activities existing in the case. This can be achieved by either enabling the activity generation or manually writing down investigation activities.
                                                                         </Typography>
-                                                                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 1, ml: 1 }}>
+                                                                        <Box sx={{ display: "flex", flexDirection: "column", mt: 1, ml: 1, mb: 2 }}>
                                                                             <FormControlLabel
                                                                                 label="Enable Web Search"
                                                                                 control={
                                                                                     <Checkbox
-                                                                                        sx={{ paddingLeft: 0 }}
                                                                                         color="secondary"
                                                                                         checked={enableWebSearch.siem_investigation}
                                                                                         onChange={() => setEnableWebSearch({ ...enableWebSearch, siem_investigation: !enableWebSearch.siem_investigation })}
                                                                                     />
                                                                                 }
                                                                             />
+                                                                            <Typography variant="caption" color="text.secondary">
+                                                                                Allows the system to perform smart internet searches and gather up-to-date knowledge as context. This increases the amount of time required as it performs smart searches and text summarization.
+                                                                            </Typography>
                                                                         </Box>
-                                                                        <Button size="small" variant="outlined" color="secondary" onClick={() => {debouncedInvestigateTask(false, true)}}>Run</Button>
+                                                                        <Button size="small" variant="outlined" color="secondary" onClick={() => { debouncedInvestigateTask(false, true) }}>Run</Button>
                                                                     </AccordionDetails>
                                                                 </Accordion>
-                                                                <Button sx={{ marginTop: 1 }} size="small" color="secondary" variant="outlined" onClick={() => {debouncedInvestigateTask(true, true)}}>Run All</Button>
+                                                                <Button sx={{ marginTop: 1 }} size="small" color="secondary" variant="outlined" onClick={() => { debouncedInvestigateTask(true, true) }}>Run All</Button>
                                                             </AccordionDetails>
                                                         </Accordion>
                                                     </TabPanel>
