@@ -210,7 +210,7 @@ export const ActivityGenerationTrainerDashboard: React.FC<ActivityGenerationTrai
                             size="small" 
                             onClick={loadBaseline}
                         >
-                            Load baseline
+                            Download Baseline
                         </Button>
                     </Box>
                 </AccordionDetails>

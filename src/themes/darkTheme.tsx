@@ -54,6 +54,9 @@ export const darkTheme = createTheme({
                     "&::-webkit-scrollbar-corner, & *::-webkit-scrollbar-corner": {
                         backgroundColor: "#CCCCFF11",
                     },
+                    fontWeightLight: 300,
+                    fontWeightRegular: 400,
+                    fontWeightMedium: 500
                 },
             }
         },
@@ -121,7 +124,7 @@ export const darkTheme = createTheme({
             styleOverrides: {
                 paper: {
                     border: "none",
-                    backgroundColor: "#6666ff10",
+                    backgroundColor: "#7070ff15",
                     backdropFilter: "blur(6px)"
                 },
             }

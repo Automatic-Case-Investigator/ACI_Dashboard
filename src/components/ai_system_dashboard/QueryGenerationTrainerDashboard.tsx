@@ -204,7 +204,7 @@ export const QueryGenerationTrainerDashboard: React.FC<QueryGenerationTrainerDas
                             size="small"
                             onClick={loadBaseline}
                         >
-                            Load baseline
+                            Download Baseline
                         </Button>
                     </Box>
                 </AccordionDetails>

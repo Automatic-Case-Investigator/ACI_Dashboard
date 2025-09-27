@@ -320,7 +320,7 @@ export const TaskGenerationTrainerDashboard: React.FC<TaskGenerationTrainerDashb
             removeCookies("token");
             return;
         }
-        if (rawData["message"] && rawData["message"] == "Success") {
+        if (rawData["message"] && rawData["message"] === "Success") {
             setCurrentVersion(rawData.basename);
         }
     }
@@ -339,7 +339,7 @@ export const TaskGenerationTrainerDashboard: React.FC<TaskGenerationTrainerDashb
             removeCookies("token");
             return;
         }
-        if (rawData["message"] && rawData["message"] == "Success") {
+        if (rawData["message"] && rawData["message"] === "Success") {
             let model_idx = -1;
             for (let i = 0; i < INFO.TASK_GENERATION.length; i++) {
                 let modelInfo = INFO.TASK_GENERATION[i];
@@ -550,7 +550,7 @@ export const TaskGenerationTrainerDashboard: React.FC<TaskGenerationTrainerDashb
                     <Box sx={{ m: 1 }} />
                     <Typography variant="body2" color="warning" sx={{ fontStyle: "italic" }}>By clicking the button below, you will reset your model to the pre-trained state.</Typography>
                     <Box sx={{ paddingTop: 1, display: "flex", gap: 1 }}>
-                        <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Load baseline</Button>
+                        <Button variant="outlined" color="warning" size="small" onClick={loadBaseline}>Download Baseline</Button>
                     </Box>
                 </AccordionDetails>
             </Accordion>
