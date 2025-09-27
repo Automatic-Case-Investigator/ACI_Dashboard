@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { ActionObject, CallbackFunction, ObservableData } from "../../types/types";
+import { ActionObject, CallbackFunction, ObservableData } from "../../../types/types";
 import { DataGrid, GridColDef, GridRowParams, GridRowSelectionModel } from "@mui/x-data-grid";
 import { Box, Dialog, IconButton, Paper, Tooltip } from "@mui/material";
 import { useCookies } from "react-cookie";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PuffLoader from "react-spinners/PuffLoader";
-import { ConfirmationDialog } from "../utils/ConfirmationDialog";
+import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
 import { useNavigate } from "react-router-dom";
 import { red } from "@mui/material/colors";
 

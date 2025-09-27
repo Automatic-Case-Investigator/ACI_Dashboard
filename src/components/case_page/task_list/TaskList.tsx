@@ -12,10 +12,11 @@ import {
 import { DataGrid, GridColDef, GridRowParams, GridRowSelectionModel } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ConfirmationDialog } from "../utils/ConfirmationDialog";
+import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
 import PuffLoader from "react-spinners/PuffLoader";
-import { ActionObject, CallbackFunction, TaskData } from "../../types/types";
+import { ActionObject, CallbackFunction, TaskData } from "../../../types/types";
 import { useCookies } from "react-cookie";
+import { TaskPreview } from "../task_preview/TaskPreview";
 
 interface TaskListProps {
     taskList: TaskData[];
@@ -32,6 +33,8 @@ export const TaskList: React.FC<TaskListProps> = ({
     caseId,
     onRefresh,
 }) => {
+    const [previewTaskId, setPreviewTaskId] = useState<string>("");
+    const [taskPreviewOpen, setTaskPreviewOpen] = useState<boolean>(false);
     const [formattedTaskList, setFormattedTaskList] = useState<TaskData[]>([]);
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
@@ -62,12 +65,12 @@ export const TaskList: React.FC<TaskListProps> = ({
             flex: 0.3,
             renderCell: (params) => (
                 <>
-                    <Tooltip title="View">
+                    <Tooltip title="Preview">
                         <IconButton
-                            onClick={() =>
-                                navigate(
-                                    `/organizations/${orgId}/cases/${caseId}/tasks/${params.row.id}`
-                                )
+                            onClick={() => {
+                                setPreviewTaskId(params.row.id);
+                                setTaskPreviewOpen(true);
+                            }
                             }
                         >
                             <VisibilityIcon />
@@ -188,6 +191,8 @@ export const TaskList: React.FC<TaskListProps> = ({
                             }}
                         />
                     </Dialog>
+
+                    <TaskPreview open={taskPreviewOpen} onClose={() => setTaskPreviewOpen(false)} orgId={orgId} caseId={caseId} taskId={previewTaskId} />
 
                     <Paper
                         sx={{

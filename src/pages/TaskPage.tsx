@@ -16,7 +16,7 @@ import { Helmet } from "react-helmet";
 
 
 import "../css/markdown.css";
-import { SIEMQueryAgent } from "../components/siem_query_agent/SIEMQueryAgent";
+import { SIEMQueryAgent } from "../components/case_page/siem_query_agent/SIEMQueryAgent";
 
 export const TaskPage = () => {
     const { orgId, caseId, taskId } = useParams();
@@ -85,7 +85,6 @@ export const TaskPage = () => {
             setErrorMessage(rawData["error"])
         } else {
             setErrorMessage("")
-            console.log(rawData["task_logs"])
             setTaskLogs(rawData["task_logs"])
         }
     }

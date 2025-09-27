@@ -8,7 +8,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PuffLoader from "react-spinners/PuffLoader";
-import { TaskList } from "../components/task_list/TaskList";
+import { TaskList } from "../components/case_page/task_list/TaskList";
 import { darkTheme } from "../themes/darkTheme";
 import TabContext from '@mui/lab/TabContext';
 import { useEffect, useState } from "react";
@@ -21,8 +21,8 @@ import { debounce } from 'lodash';
 import { useCookies } from "react-cookie";
 
 import "../css/markdown.css"
-import { SIEMQueryAgent } from "../components/siem_query_agent/SIEMQueryAgent";
-import { ObservableList } from "../components/observable_list/ObservableList";
+import { SIEMQueryAgent } from "../components/case_page/siem_query_agent/SIEMQueryAgent";
+import { ObservableList } from "../components/case_page/observable_list/ObservableList";
 
 interface WebSearchEnableState {
     task_generation: boolean,

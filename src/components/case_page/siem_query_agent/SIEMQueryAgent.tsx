@@ -1,6 +1,6 @@
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { IconButton, Tooltip, Box, Typography, Button } from '@mui/material';
-import { TargetSIEMInfo } from '../../types/types';
+import { TargetSIEMInfo } from '../../../types/types';
 import CloseIcon from '@mui/icons-material/Close';
 import CodeIcon from '@mui/icons-material/Code';
 import MonacoEditor from '@monaco-editor/react';
