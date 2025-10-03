@@ -75,17 +75,19 @@ export const SOARSettings = () => {
         const output: SOARData[] = [];
         const raw = localStorage.getItem("targetSOAR");
         const targetSOAR: TargetSOAR | null = raw ? (JSON.parse(raw) as TargetSOAR) : null;
-
-        for (let soar of rawData["message"]) {
-            const formattedData: SOARData = {
-                id: soar.id,
-                name: soar.name,
-                type: soar.soar_type in SOAR_CHOICES ? SOAR_CHOICES[soar.soar_type] : "Unknown",
-                url: `${soar.protocol}//${soar.hostname}${soar.base_dir}`,
-                apiKey: soar.api_key,
-                isTarget: !!(targetSOAR && soar.id === targetSOAR.id)
-            };
-            output.push(formattedData);
+        
+        if (rawData.message) {
+            for (let soar of rawData.message) {
+                const formattedData: SOARData = {
+                    id: soar.id,
+                    name: soar.name,
+                    type: soar.soar_type in SOAR_CHOICES ? SOAR_CHOICES[soar.soar_type] : "Unknown",
+                    url: `${soar.protocol}//${soar.hostname}${soar.base_dir}`,
+                    apiKey: soar.api_key,
+                    isTarget: !!(targetSOAR && soar.id === targetSOAR.id)
+                };
+                output.push(formattedData);
+            }
         }
 
         setSoarsData(output);
