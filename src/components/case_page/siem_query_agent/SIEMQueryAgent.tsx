@@ -1,5 +1,6 @@
+import { IconButton, Tooltip, Box, Typography, Button, TextField } from '@mui/material';
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { IconButton, Tooltip, Box, Typography, Button } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { TargetSIEMInfo } from '../../../types/types';
 import CloseIcon from '@mui/icons-material/Close';
 import CodeIcon from '@mui/icons-material/Code';
@@ -25,7 +26,7 @@ export const SIEMQueryAgent = () => {
         }
     });
 
-    const [size, setSize] = useState({ width: 500, height: 600 });
+    const [size, setSize] = useState({ width: 1000, height: 450 });
 
     const handleEditorDidMount = (editor: any) => {
         editorRef.current = editor;
@@ -137,7 +138,7 @@ export const SIEMQueryAgent = () => {
                         }}
                     >
                         <Box p={2} sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-                            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ pb: 2, borderBottom: '1px solid #444', mb: 2 }}>
+                            <Box display="flex" justifyContent="space-between" alignItems="center">
                                 <Typography color="#bdbfff">SIEM Query Agent</Typography>
                                 <Box>
                                     <IconButton onClick={() => setOpen(false)} size="small" sx={{ color: '#bdbfff' }}>
@@ -145,12 +146,29 @@ export const SIEMQueryAgent = () => {
                                     </IconButton>
                                 </Box>
                             </Box>
-
-                            <PanelGroup direction="vertical" style={{ height: '100%' }}>
-                                <Panel minSize={20} defaultSize={55} style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                                    <Box sx={{ ...editorBoxStyle, flex: 1, minHeight: 0, mb: 2, display: 'flex', flexDirection: 'column' }}>
+                            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                                <TextField size="small" placeholder="(WIP) Describe what you want to query..." fullWidth />
+                                <IconButton>
+                                    <ArrowForwardIcon />
+                                </IconButton>
+                            </Box>
+                            <PanelGroup direction="horizontal" style={{ height: '100%' }}>
+                                <Panel minSize={20} defaultSize={50} style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <Box sx={{ ...editorBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                        <Box display="flex" justifyContent="space-between" alignItems="center">
                                         <Typography variant="subtitle2" sx={{ mb: 0.5, color: '#bdbfff' }}>Request Body</Typography>
-                                        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                                        <Button
+                                            size="small"
+                                            sx={{height: 24}}
+                                            variant="outlined"
+                                            onClick={handleSend}
+                                            disabled={loading}
+                                            color="primary"
+                                        >
+                                            {loading ? 'Sending...' : 'Send'}
+                                        </Button>
+                                        </Box>
+                                        <Box sx={{ flex: 1, mt: 0.5, display: 'flex', flexDirection: 'column' }}>
                                             <MonacoEditor
                                                 height="100%"
                                                 width="100%"
@@ -172,22 +190,12 @@ export const SIEMQueryAgent = () => {
                                             />
                                         </Box>
                                     </Box>
-                                    <Button
-                                        sx={{ mt: 1, mb: 2, alignSelf: 'flex-end', minWidth: 100, letterSpacing: 1 }}
-                                        variant="contained"
-                                        onClick={handleSend}
-                                        disabled={loading}
-                                        color="primary"
-                                    >
-                                        {loading ? 'Sending...' : 'Send'}
-                                    </Button>
                                 </Panel>
                                 <PanelResizeHandle style={{ border: '1px solid #444', background: '#444', cursor: 'row-resize' }} />
-                                <Box sx={{ mb: 2 }} />
-                                <Panel minSize={20} defaultSize={45} style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                                    <Box sx={{ ...editorBoxStyle, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                                <Panel minSize={20} defaultSize={50} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                    <Box sx={{ ...editorBoxStyle, flex: 1, display: 'flex', flexDirection: 'column' }}>
                                         <Typography variant="subtitle2" sx={{ mb: 0.5, color: '#bdbfff' }}>Query Response</Typography>
-                                        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                                        <Box sx={{ flex: 1, mt: 0.5, display: 'flex', flexDirection: 'column' }}>
                                             <MonacoEditor
                                                 height="100%"
                                                 width="100%"
