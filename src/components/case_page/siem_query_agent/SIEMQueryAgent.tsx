@@ -8,13 +8,16 @@ import MonacoEditor from '@monaco-editor/react';
 import { useCookies } from 'react-cookie';
 import { useState, useRef } from 'react';
 import { Resizable } from 're-resizable';
+import { debounce } from 'lodash';
 
 
 export const SIEMQueryAgent = () => {
     const [cookies, _setCookies, removeCookies] = useCookies(['token']);
     const [open, setOpen] = useState<boolean>(false);
     const [response, setResponse] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(false);
+    const [queryLoading, setQueryLoading] = useState<boolean>(false);
+    const [generationLoading, setGenerationLoading] = useState<boolean>(false);
+    const [userPrompt, setUserPrompt] = useState<string>("");
     const editorRef = useRef<any>(null);
 
     const [targetSIEM, _setTargetSIEM] = useState<TargetSIEMInfo | null>(() => {
@@ -32,8 +35,38 @@ export const SIEMQueryAgent = () => {
         editorRef.current = editor;
     };
 
+    const handleQueryGenerate = async () => {
+        setGenerationLoading(true);
+        try {
+            const requestBody = new FormData();
+            requestBody.append("prompt", userPrompt);
+            const response = await fetch(
+                process.env.REACT_APP_BACKEND_URL + `ai_backend/automatic_investigation/query_generation_model/generate/`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${cookies.token}`,
+                        "Accept": "application/json"
+                    },
+                    body: requestBody
+                }
+            );
+            const query = (await response.json())["query"];
+            if (query) {
+                localStorage.setItem("SIEMQueryAgentRequestBodyValue", query);
+                editorRef.current?.setValue(query);
+            }
+        } catch (err: any) {
+            ;
+        } finally {
+            setGenerationLoading(false);
+        }
+    }
+
+    const debouncedHandleQueryGenerate = debounce(handleQueryGenerate, 500);
+
     const handleSend = async () => {
-        setLoading(true);
+        setQueryLoading(true);
         try {
             const value = editorRef.current?.getValue() || '{}';
             const requestBody = new FormData();
@@ -59,7 +92,7 @@ export const SIEMQueryAgent = () => {
         } catch (err: any) {
             setResponse('');
         } finally {
-            setLoading(false);
+            setQueryLoading(false);
         }
     };
 
@@ -147,28 +180,27 @@ export const SIEMQueryAgent = () => {
                                 </Box>
                             </Box>
                             <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                                <TextField size="small" placeholder="(WIP) Describe what you want to query..." fullWidth />
-                                <IconButton>
+                                <TextField size="small" placeholder="(WIP) Describe what you want to query..." value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} fullWidth />
+                                <IconButton onClick={debouncedHandleQueryGenerate} disabled={generationLoading} loading={generationLoading}>
                                     <ArrowForwardIcon />
                                 </IconButton>
                             </Box>
                             <PanelGroup direction="horizontal" style={{ height: '100%' }}>
                                 <Panel minSize={20} defaultSize={50} style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <Box sx={{ ...editorBoxStyle, flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                    <Box sx={editorBoxStyle} flex={1} display='flex' flexDirection='column' height='100%'>
                                         <Box display="flex" justifyContent="space-between" alignItems="center">
-                                        <Typography variant="subtitle2" sx={{ mb: 0.5, color: '#bdbfff' }}>Request Body</Typography>
-                                        <Button
-                                            size="small"
-                                            sx={{height: 24}}
-                                            variant="outlined"
-                                            onClick={handleSend}
-                                            disabled={loading}
-                                            color="primary"
-                                        >
-                                            {loading ? 'Sending...' : 'Send'}
-                                        </Button>
+                                            <Typography variant="subtitle2" sx={{ mb: 0.5, color: '#bdbfff' }}>Request Body</Typography>
+                                            <Button
+                                                size="small"
+                                                sx={{ height: 24 }}
+                                                variant="outlined"
+                                                onClick={handleSend}
+                                                disabled={queryLoading}
+                                                color="primary">
+                                                {queryLoading ? 'Sending...' : 'Send'}
+                                            </Button>
                                         </Box>
-                                        <Box sx={{ flex: 1, mt: 0.5, display: 'flex', flexDirection: 'column' }}>
+                                        <Box flex={1} display='flex' flexDirection='column' mt={0.5}>
                                             <MonacoEditor
                                                 height="100%"
                                                 width="100%"
@@ -193,9 +225,9 @@ export const SIEMQueryAgent = () => {
                                 </Panel>
                                 <PanelResizeHandle style={{ border: '1px solid #444', background: '#444', cursor: 'row-resize' }} />
                                 <Panel minSize={20} defaultSize={50} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                    <Box sx={{ ...editorBoxStyle, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                    <Box sx={editorBoxStyle} flex={1} display='flex' flexDirection='column' height='100%'>
                                         <Typography variant="subtitle2" sx={{ mb: 0.5, color: '#bdbfff' }}>Query Response</Typography>
-                                        <Box sx={{ flex: 1, mt: 0.5, display: 'flex', flexDirection: 'column' }}>
+                                        <Box flex={1} display='flex' flexDirection='column' mt={0.5}>
                                             <MonacoEditor
                                                 height="100%"
                                                 width="100%"
