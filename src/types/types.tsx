@@ -88,7 +88,11 @@ export interface ObservableData {
     reports: any;
 }
 
-export interface ModelInfo {
-    NAME: string;
-    SIZE: string;
+export interface DocumentData {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: Date;
+    createdBy: string;
+    category: string;
 }

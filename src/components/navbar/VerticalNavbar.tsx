@@ -8,8 +8,8 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { useNavigate } from "react-router-dom";
-import TokenIcon from "@mui/icons-material/Token";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+// import MenuBookIcon from '@mui/icons-material/MenuBook';
 import CorporateFareIcon from "@mui/icons-material/CorporateFare";
 import MemoryIcon from "@mui/icons-material/Memory";
 import { MouseEvent, useState } from "react";
@@ -70,11 +70,11 @@ export const VerticalNavbar: React.FC = () => {
                             <CorporateFareIcon />
                         </Button>
                     </Tooltip>
-                    <Tooltip title="AI systems" placement="right">
-                        <Button sx={{ height: 50 }} fullWidth onClick={() => { navigate("/ai-systems", { replace: true }) }}>
-                            <TokenIcon />
+                    {/* <Tooltip title="Knowledge" placement="right">
+                        <Button sx={{ height: 50 }} fullWidth onClick={() => { navigate("/knowledge", { replace: true }) }}>
+                            <MenuBookIcon />
                         </Button>
-                    </Tooltip>
+                    </Tooltip> */}
                     <Tooltip title="Jobs" placement="right">
                         <Button sx={{ height: 50 }} fullWidth onClick={() => { navigate("/jobs", { replace: true }) }}>
                             <MemoryIcon />

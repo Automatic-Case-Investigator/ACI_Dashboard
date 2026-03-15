@@ -1,5 +1,5 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, FormControlLabel, IconButton, Snackbar, Tooltip, Typography } from "@mui/material";
-import { CaseData, ObservableData, TargetSIEMInfo, TargetSOARInfo, TaskData } from "../types/types";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, FormControlLabel, IconButton, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
+import { CaseData, ObservableData, TargetSIEMInfo, TargetSOARInfo, TaskData, DocumentData } from "../types/types";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -23,6 +23,7 @@ import { useCookies } from "react-cookie";
 import "../css/markdown.css"
 import { SIEMQueryAgent } from "../components/case_page/siem_query_agent/SIEMQueryAgent";
 import { ObservableList } from "../components/case_page/observable_list/ObservableList";
+import { DocumentList } from "../components/case_page/document_list/DocumentList";
 
 interface WebSearchEnableState {
     task_generation: boolean,
@@ -41,6 +42,7 @@ export const CasePage = () => {
     const [snackbarSuccessful, setSnackbarSuccessful] = useState<boolean>(true);
     const [caseData, setCaseData] = useState<CaseData | null>(null);
     const [taskList, setTaskList] = useState<TaskData[]>([]);
+    const [documentList, setDocumentList] = useState<DocumentData[]>([]);
     const [observables, setObservables] = useState<ObservableData[]>([]);
     const currentTab = searchParams.get('tab') || "0";
 
@@ -64,12 +66,14 @@ export const CasePage = () => {
 
     const navigate = useNavigate();
 
-    // automatic investigation states
+    // web search states
     const [enableWebSearch, setEnableWebSearch] = useState<WebSearchEnableState>({
         task_generation: false,
         activity_generation: false,
         siem_investigation: false
     })
+
+    const [maxIterations, setMaxIterations] = useState<string>("5");
 
     // component open states
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -119,6 +123,30 @@ export const CasePage = () => {
         } else {
             setErrorMessage("");
             setTaskList(rawData.tasks);
+        }
+    };
+
+    const getDocumentList = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}soar/document/?soar_id=${targetSOAR?.id}&org_id=${orgId}&case_id=${caseId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${cookies.token}`,
+                },
+            }
+        );
+        const rawData = await response.json();
+
+        if (rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
+        if (rawData.error) {
+            setErrorMessage(rawData.error);
+        } else {
+            setErrorMessage("");
+            setDocumentList(rawData.pages);
         }
     };
 
@@ -180,16 +208,47 @@ export const CasePage = () => {
         setSnackbarOpen(true);
     };
 
-    const investigateTask = async (enableActivityGeneration: boolean, enableSIEMInvestigation: boolean) => {
+    const generateActivity = async () => {
+        const requestBody = new FormData();
+        requestBody.append("soar_id", targetSOAR?.id || "");
+        requestBody.append("case_id", caseId);
+        requestBody.append("org_id", orgId);
+        requestBody.append("web_search", enableWebSearch.task_generation ? "1" : "0");
+
+        const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}ai_backend/activity_generation_model/generate/`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${cookies.token}`,
+                },
+                body: requestBody,
+            }
+        );
+
+        const rawData = await response.json();
+
+        if (rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+
+        if (rawData.message === "Success") {
+            setSnackbarMessage("Successfully created task generation job. Check jobs page for details.");
+            setSnackbarSuccessful(true);
+        } else {
+            setSnackbarMessage(rawData.error || "Failed communicating with the backend. Contact administrators.");
+            setSnackbarSuccessful(false);
+        }
+        setSnackbarOpen(true);
+    }
+
+    const investigateTask = async () => {
         const requestBody = new FormData();
         requestBody.append("siem_id", targetSIEM?.id || "");
         requestBody.append("soar_id", targetSOAR?.id || "");
         requestBody.append("org_id", orgId);
         requestBody.append("case_id", caseId);
-        requestBody.append("generate_activities", enableActivityGeneration ? "1" : "0");
-        requestBody.append("investigate_siem", enableSIEMInvestigation ? "1" : "0");
-        requestBody.append("generate_activities_web_search", enableWebSearch.activity_generation ? "1" : "0");
-        requestBody.append("investigate_siem_web_search", enableWebSearch.siem_investigation ? "1" : "0");
 
         const response = await fetch(
             `${process.env.REACT_APP_BACKEND_URL}ai_backend/automatic_investigation/investigate/`,
@@ -223,6 +282,7 @@ export const CasePage = () => {
         getCaseData();
         getObservables();
         getTaskList();
+        getDocumentList();
     };
 
     const refresh = async () => {
@@ -232,6 +292,7 @@ export const CasePage = () => {
     };
 
     const debouncedGenerateTask = debounce(generateTask, 300);
+    const debouncedGenerateActivity = debounce(generateActivity, 300);
     const debouncedInvestigateTask = debounce(investigateTask, 300);
 
     useEffect(() => {
@@ -304,7 +365,8 @@ export const CasePage = () => {
                                                             <Tab label="General" value="0" disableRipple />
                                                             <Tab label="Observables" value="1" disableRipple />
                                                             <Tab label="Tasks" value="2" disableRipple />
-                                                            <Tab label="Automations" value="3" disableRipple />
+                                                            <Tab label="Documents" value="3" disableRipple />
+                                                            <Tab label="Automations" value="4" disableRipple />
 
                                                         </TabList>
                                                     </Box>
@@ -316,6 +378,9 @@ export const CasePage = () => {
                                                         <TaskList taskList={taskList} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
                                                     </TabPanel>
                                                     <TabPanel value="3">
+                                                        <DocumentList documentList={documentList} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
+                                                    </TabPanel>
+                                                    <TabPanel value="4">
                                                         {/* Task Generation */}
                                                         <Accordion defaultExpanded>
                                                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -344,67 +409,96 @@ export const CasePage = () => {
                                                             </AccordionDetails>
                                                         </Accordion>
 
+                                                        {/* Activity Generation */}
                                                         <Accordion defaultExpanded>
                                                             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                                                <Typography component="span">Task Investigation</Typography>
+                                                                <Typography component="span">Activity Generation</Typography>
                                                             </AccordionSummary>
                                                             <AccordionDetails>
-                                                                {/* Activity Generation */}
-                                                                <Accordion defaultExpanded>
-                                                                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                                                        <Typography component="span">Activity Generation</Typography>
-                                                                    </AccordionSummary>
-                                                                    <AccordionDetails>
-                                                                        <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
-                                                                            This is responsible for generating detailed activities to be performed by analysts based on each task present in the case.
-                                                                        </Typography>
-                                                                        <Box sx={{ display: "flex", flexDirection: "column", mt: 1, ml: 1, mb: 2 }}>
-                                                                            <FormControlLabel
-                                                                                label="Enable Web Search"
-                                                                                control={
-                                                                                    <Checkbox
-                                                                                        color="secondary"
-                                                                                        checked={enableWebSearch.activity_generation}
-                                                                                        onChange={() => setEnableWebSearch({ ...enableWebSearch, activity_generation: !enableWebSearch.activity_generation })}
-                                                                                    />
-                                                                                }
+                                                                <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
+                                                                    This is responsible for generating more in-depth sub-activities of each task.
+                                                                </Typography>
+                                                                <Box sx={{ display: "flex", flexDirection: "column", mt: 1, ml: 1, mb: 2 }}>
+                                                                    <FormControlLabel
+                                                                        label="Enable Web Search"
+                                                                        control={
+                                                                            <Checkbox
+                                                                                color="secondary"
+                                                                                checked={enableWebSearch.activity_generation}
+                                                                                onChange={() => setEnableWebSearch({ ...enableWebSearch, activity_generation: !enableWebSearch.activity_generation })}
                                                                             />
-                                                                            <Typography variant="caption" color="text.secondary">
-                                                                                Allows the system to perform smart internet searches and gather up-to-date knowledge as context. This increases the amount of time required as it performs smart searches and text summarization.
-                                                                            </Typography>
-                                                                        </Box>
-                                                                        <Button size="small" variant="outlined" color="secondary" onClick={() => { debouncedInvestigateTask(true, false) }}>Run</Button>
-                                                                    </AccordionDetails>
-                                                                </Accordion>
+                                                                        }
+                                                                    />
+                                                                    <Typography variant="caption" color="text.secondary">
+                                                                        Allows the system to perform smart internet searches and gather up-to-date knowledge as context. This increases the amount of time required as it performs smart searches and text summarization.
+                                                                    </Typography>
+                                                                </Box>
+                                                                <Button size="small" variant="outlined" color="secondary" onClick={debouncedGenerateActivity}>Run</Button>
+                                                            </AccordionDetails>
+                                                        </Accordion>
 
-                                                                {/* SIEM Investigation */}
-                                                                <Accordion defaultExpanded>
-                                                                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                                                        <Typography component="span">SIEM Investigation</Typography>
-                                                                    </AccordionSummary>
-                                                                    <AccordionDetails>
-                                                                        <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
-                                                                            This is responsible for automatically querying the SIEM and correlating security events to perform investigation. This must be used with activities existing in the case. This can be achieved by either enabling the activity generation or manually writing down investigation activities.
-                                                                        </Typography>
-                                                                        <Box sx={{ display: "flex", flexDirection: "column", mt: 1, ml: 1, mb: 2 }}>
-                                                                            <FormControlLabel
-                                                                                label="Enable Web Search"
-                                                                                control={
-                                                                                    <Checkbox
-                                                                                        color="secondary"
-                                                                                        checked={enableWebSearch.siem_investigation}
-                                                                                        onChange={() => setEnableWebSearch({ ...enableWebSearch, siem_investigation: !enableWebSearch.siem_investigation })}
-                                                                                    />
-                                                                                }
+                                                        <Accordion defaultExpanded>
+                                                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                                                <Typography component="span">Automatic Investigation</Typography>
+                                                            </AccordionSummary>
+                                                            <AccordionDetails>
+                                                                <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
+                                                                    This is responsible for automatically querying the SIEM and correlating security events to perform investigation. This must be used with activities existing in the case. This can be achieved by either enabling the activity generation or manually writing down investigation activities.
+                                                                </Typography>
+                                                                <Box sx={{ display: "flex", flexDirection: "column", mt: 1, ml: 1, mb: 2 }}>
+                                                                    <FormControlLabel
+                                                                        label="Enable Web Search"
+                                                                        control={
+                                                                            <Checkbox
+                                                                                color="secondary"
+                                                                                checked={enableWebSearch.siem_investigation}
+                                                                                onChange={() => setEnableWebSearch({ ...enableWebSearch, siem_investigation: !enableWebSearch.siem_investigation })}
                                                                             />
-                                                                            <Typography variant="caption" color="text.secondary">
-                                                                                Allows the system to perform smart internet searches and gather up-to-date knowledge as context. This increases the amount of time required as it performs smart searches and text summarization.
-                                                                            </Typography>
-                                                                        </Box>
-                                                                        <Button size="small" variant="outlined" color="secondary" onClick={() => { debouncedInvestigateTask(false, true) }}>Run</Button>
-                                                                    </AccordionDetails>
-                                                                </Accordion>
-                                                                <Button sx={{ marginTop: 1 }} size="small" color="secondary" variant="outlined" onClick={() => { debouncedInvestigateTask(true, true) }}>Run All</Button>
+                                                                        }
+                                                                    />
+                                                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, ml: 1 }}>
+                                                                        <Typography component="span">Maximum iterations for investigation</Typography>
+
+                                                                        <TextField
+                                                                            size="small"
+                                                                            value={maxIterations}
+                                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                                const { value } = e.target as HTMLInputElement;
+                                                                                if (!e.target) return;
+                                                                                if (value === "") {
+                                                                                    setMaxIterations("");
+                                                                                    return;
+                                                                                }
+                                                                                if (+value >= 1 && +value <= 10) {
+                                                                                    setMaxIterations(value);
+                                                                                }
+                                                                            }}
+                                                                            type="number"
+                                                                            sx={{
+                                                                                ml: 1,
+                                                                                width: '60px',
+                                                                                '& input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                                                                                '& input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                                                                                '& input[type=number]': { MozAppearance: 'textfield' },
+                                                                            }}
+                                                                        />
+                                                                    </Box>
+
+                                                                    <Typography variant="caption" color="text.secondary">
+                                                                        Allows the system to perform smart internet searches and gather up-to-date knowledge as context. This increases the amount of time required as it performs smart searches and text summarization.
+                                                                    </Typography>
+                                                                </Box>
+                                                                <Button size="small" variant="outlined" color="secondary" onClick={debouncedInvestigateTask}>Run</Button>
+                                                            </AccordionDetails>
+                                                        </Accordion>
+                                                        <Accordion defaultExpanded>
+                                                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                                                <Typography component="span">Report Generation</Typography>
+                                                            </AccordionSummary>
+                                                            <AccordionDetails>
+                                                                <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
+                                                                    (Coming soon) With the investigation results on the SOAR, the system generates a report summarizing the investigation process, findings, and recommended next steps.
+                                                                </Typography>
                                                             </AccordionDetails>
                                                         </Accordion>
                                                     </TabPanel>

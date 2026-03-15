@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { CallbackFunction, TargetSOARInfo, TaskData, TaskLogData } from "../../../types/types";
-import { Box, Button, Divider, Drawer, Paper, Typography } from "@mui/material";
+import { Box, Button, Divider, Drawer, Paper, Typography, Collapse, IconButton } from "@mui/material";
 import MarkdownPreview from '@uiw/react-markdown-preview';
 
 import { useCookies } from "react-cookie";
 import { darkTheme } from "../../../themes/darkTheme";
 import PuffLoader from "react-spinners/PuffLoader";
 import { useNavigate } from "react-router-dom";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface TaskPreviewProps {
     open: boolean;
@@ -32,6 +33,12 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
     });
 
     const navigate = useNavigate();
+
+    const [openLogIndexes, setOpenLogIndexes] = useState<number[]>([]);
+
+    const toggleLogOpen = (index: number) => {
+        setOpenLogIndexes(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
+    }
 
     const getTaskData = async () => {
         const response = await fetch(
@@ -98,6 +105,10 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
         fetchData();
     }, [targetSOAR, open]);
 
+    useEffect(() => {
+        setOpenLogIndexes(taskLogs.map((_, i) => i));
+    }, [taskLogs]);
+
 
     return <>
         <Drawer anchor="right" open={open} onClose={onClose}>
@@ -130,17 +141,48 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
                                     <Typography variant="h6" sx={{ mt: 2 }}>Task Log:</Typography>
                                     <Box sx={{ flex: 1, overflow: "auto" }}>
                                         {taskLogs && taskLogs.length > 0 ? (
-                                            taskLogs.map((log, index) => (
-                                                <Paper key={index} sx={{ padding: 1, margin: 1 }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                        <Box>
-                                                            <Typography sx={{ display: "inline-block", paddingRight: 2 }}>{log.createdBy}</Typography>
-                                                            <Typography sx={{ display: "inline-block", paddingRight: 2, color: "weak.main" }}>{new Date(taskData.createdAt).toString()}</Typography>
+                                            taskLogs.map((log, index) => {
+                                                const isOpen = openLogIndexes.includes(index);
+                                                return (
+                                                    <Paper key={index} sx={{ padding: 1, margin: 1, overflowX: 'scroll' }}>
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+                                                                <IconButton
+                                                                    onClick={() => toggleLogOpen(index)}
+                                                                    aria-label={isOpen ? "Collapse" : "Expand"}
+                                                                    size="small"
+                                                                    sx={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}
+                                                                >
+                                                                    <ExpandMoreIcon />
+                                                                </IconButton>
+                                                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                                        <Typography sx={{ display: "inline-block" }}>{log.createdBy}</Typography>
+                                                                        <Typography sx={{ display: "inline-block", color: "weak.main" }}>{new Date(taskData.createdAt).toString()}</Typography>
+                                                                    </Box>
+                                                                    {!isOpen && (
+                                                                        <Typography
+                                                                            sx={{
+                                                                                color: "weak.main",
+                                                                                fontSize: "0.875rem",
+                                                                                overflow: "hidden",
+                                                                                textOverflow: "ellipsis",
+                                                                                whiteSpace: "nowrap",
+                                                                                mt: 0.5
+                                                                            }}
+                                                                        >
+                                                                            {log.message.split('\n')[0]}
+                                                                        </Typography>
+                                                                    )}
+                                                                </Box>
+                                                            </Box>
                                                         </Box>
-                                                    </Box>
-                                                    <MarkdownPreview source={log.message} style={{ width: "calc(50vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main, fontSize: "1rem" }} />
-                                                </Paper>
-                                            ))
+                                                        <Collapse in={isOpen}>
+                                                            <MarkdownPreview source={log.message} style={{ width: "calc(50vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main, fontSize: "1rem" }} />
+                                                        </Collapse>
+                                                    </Paper>
+                                                )
+                                            })
                                         ) : (
                                             <Typography sx={{ color: "weak.main" }}>No task logs have been found</Typography>
                                         )}

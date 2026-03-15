@@ -4,6 +4,7 @@ import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { Helmet } from "react-helmet";
 import { Box } from "@mui/material";
+import { AgentSettings } from "../components/settings/AgentSettings/AgentSettings";
 
 export const Settings = () => {
     return (
@@ -18,6 +19,8 @@ export const Settings = () => {
                     <SOARSettings />
                     <Box sx={{ m: 2 }} />
                     <SIEMSettings />
+                    <Box sx={{ m: 2 }} />
+                    <AgentSettings />
                 </Box>
             </Box>
         </>
