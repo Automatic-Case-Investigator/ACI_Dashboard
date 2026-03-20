@@ -1,4 +1,4 @@
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, FormControlLabel, IconButton, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, FormControl, FormControlLabel, IconButton, InputLabel, MenuItem, Select, Snackbar, TextField, Tooltip, Typography } from "@mui/material";
 import { CaseData, ObservableData, TargetSIEMInfo, TargetSOARInfo, TaskData, DocumentData } from "../types/types";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
@@ -73,7 +73,15 @@ export const CasePage = () => {
         siem_investigation: false
     })
 
-    const [maxIterations, setMaxIterations] = useState<string>("5");
+    // earliest time to look up setting
+    const [earliestMagnitude, setEarliestMagnitude] = useState<number | "">(1);
+    const [earliestUnit, setEarliestUnit] = useState<string>("years");
+
+    // time window for events in vicinity
+    const [vicinityMagnitude, setVicinityMagnitude] = useState<number | "">(1);
+    const [vicinityUnit, setVicinityUnit] = useState<string>("hours");
+
+    const [maxIterations, setMaxIterations] = useState<number | "">(3);
 
     // component open states
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -244,11 +252,20 @@ export const CasePage = () => {
     }
 
     const investigateTask = async () => {
+        const correctedMagnitude = correctEarliestMagnitude();
+        const correctedVicinityMagnitude = correctVicinityMagnitude();
+        const correctedMaxIterations = correctMaxIterations();
+
         const requestBody = new FormData();
         requestBody.append("siem_id", targetSIEM?.id || "");
         requestBody.append("soar_id", targetSOAR?.id || "");
         requestBody.append("org_id", orgId);
         requestBody.append("case_id", caseId);
+        requestBody.append("earliest_magnitude", correctedMagnitude.toString());
+        requestBody.append("earliest_unit", earliestUnit);
+        requestBody.append("vicinity_magnitude", correctedVicinityMagnitude.toString());
+        requestBody.append("vicinity_unit", vicinityUnit);
+        requestBody.append("max_iterations", correctedMaxIterations.toString());
 
         const response = await fetch(
             `${process.env.REACT_APP_BACKEND_URL}ai_backend/automatic_investigation/investigate/`,
@@ -277,6 +294,30 @@ export const CasePage = () => {
         }
         setSnackbarOpen(true);
     };
+
+    const correctEarliestMagnitude = () => {
+        if (typeof earliestMagnitude === "string" || earliestMagnitude <= 0) {
+            setEarliestMagnitude(1);
+            return 1;
+        }
+        return earliestMagnitude;
+    }
+
+    const correctMaxIterations = () => {
+        if (typeof maxIterations === "string" || maxIterations <= 0) {
+            setMaxIterations(1);
+            return 1
+        }
+        return maxIterations;
+    }
+
+    const correctVicinityMagnitude = () => {
+        if (typeof vicinityMagnitude === "string" || vicinityMagnitude <= 0) {
+            setVicinityMagnitude(1);
+            return 1;
+        }
+        return vicinityMagnitude;
+    }
 
     const updateData = () => {
         getCaseData();
@@ -370,7 +411,22 @@ export const CasePage = () => {
 
                                                         </TabList>
                                                     </Box>
-                                                    <TabPanel value="0"><MarkdownPreview source={caseData.description} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main }} /></TabPanel>
+                                                    <TabPanel value="0">
+                                                        <MarkdownPreview
+                                                            source={caseData.description}
+                                                            style={{
+                                                                width: "calc(100vw - 150px)",
+                                                                background: "transparent",
+                                                                color: darkTheme.palette.primary.main
+                                                            }}
+                                                            components={{
+                                                                a: ({ children, className, ...props }) =>
+                                                                    className && className.includes('anchor') ?
+                                                                        <a style={{ display: "none" }}>{children}</a> :
+                                                                        <a className={className} {...props}>{children}</a>
+                                                            }}
+                                                        />
+                                                    </TabPanel>
                                                     <TabPanel value="1">
                                                         <ObservableList observableList={observables} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
                                                     </TabPanel>
@@ -456,33 +512,75 @@ export const CasePage = () => {
                                                                             />
                                                                         }
                                                                     />
-                                                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, ml: 1 }}>
-                                                                        <Typography component="span">Maximum iterations for investigation</Typography>
-
+                                                                    
+                                                                    <Typography mb={1}>Earliest events from now to look up:</Typography>
+                                                                    <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
                                                                         <TextField
                                                                             size="small"
-                                                                            value={maxIterations}
-                                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                                                const { value } = e.target as HTMLInputElement;
-                                                                                if (!e.target) return;
-                                                                                if (value === "") {
-                                                                                    setMaxIterations("");
-                                                                                    return;
-                                                                                }
-                                                                                if (+value >= 1 && +value <= 10) {
-                                                                                    setMaxIterations(value);
-                                                                                }
-                                                                            }}
                                                                             type="number"
-                                                                            sx={{
-                                                                                ml: 1,
-                                                                                width: '60px',
-                                                                                '& input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 },
-                                                                                '& input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
-                                                                                '& input[type=number]': { MozAppearance: 'textfield' },
-                                                                            }}
+                                                                            placeholder="0"
+                                                                            value={earliestMagnitude}
+                                                                            onBlur={correctEarliestMagnitude}
+                                                                            onChange={(e) => setEarliestMagnitude(e.target.value === "" ? "" : Number(e.target.value))}
+                                                                            sx={{ width: 100 }}
                                                                         />
+
+                                                                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                                                                            <InputLabel>Unit</InputLabel>
+                                                                            <Select
+                                                                                value={earliestUnit}
+                                                                                label="Unit"
+                                                                                onChange={(e) => setEarliestUnit(e.target.value)}
+                                                                            >
+                                                                                <MenuItem value="hours">Hours</MenuItem>
+                                                                                <MenuItem value="days">Days</MenuItem>
+                                                                                <MenuItem value="weeks">Weeks</MenuItem>
+                                                                                <MenuItem value="months">Months</MenuItem>
+                                                                                <MenuItem value="years">Years</MenuItem>
+                                                                            </Select>
+                                                                        </FormControl>
                                                                     </Box>
+                                                                    <Box mb={1} />
+                                                                    <Typography mb={1}>Time window for events in vicinity:</Typography>
+                                                                    <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}>
+                                                                        <TextField
+                                                                            size="small"
+                                                                            type="number"
+                                                                            placeholder="0"
+                                                                            value={vicinityMagnitude}
+                                                                            onBlur={correctVicinityMagnitude}
+                                                                            onChange={(e) => setVicinityMagnitude(e.target.value === "" ? "" : Number(e.target.value))}
+                                                                            sx={{ width: 100 }}
+                                                                        />
+
+                                                                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                                                                            <InputLabel>Unit</InputLabel>
+                                                                            <Select
+                                                                                value={vicinityUnit}
+                                                                                label="Unit"
+                                                                                onChange={(e) => setVicinityUnit(e.target.value)}
+                                                                            >
+                                                                                <MenuItem value="minutes">Minutes</MenuItem>
+                                                                                <MenuItem value="hours">Hours</MenuItem>
+                                                                                <MenuItem value="days">Days</MenuItem>
+                                                                            </Select>
+                                                                        </FormControl>
+                                                                    </Box>
+                                                                    <Box mb={1} />
+                                                                    <Typography mb={1}>Maximum iterations for investigation</Typography>
+                                                                    <TextField
+                                                                        size="small"
+                                                                        value={maxIterations}
+                                                                        onChange={(e) => setMaxIterations(e.target.value === "" ? "" : Number(e.target.value))}
+                                                                        onBlur={correctMaxIterations}
+                                                                        type="number"
+                                                                        sx={{
+                                                                            width: '60px',
+                                                                            '& input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                                                                            '& input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                                                                            '& input[type=number]': { MozAppearance: 'textfield' },
+                                                                        }}
+                                                                    />
 
                                                                     <Typography variant="caption" color="text.secondary">
                                                                         Allows the system to perform smart internet searches and gather up-to-date knowledge as context. This increases the amount of time required as it performs smart searches and text summarization.

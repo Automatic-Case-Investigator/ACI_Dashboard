@@ -1,4 +1,5 @@
 import { Box, Divider, IconButton, Paper, TextField, Tooltip, Typography, Collapse } from "@mui/material";
+import { SIEMQueryAgent } from "../components/case_page/siem_query_agent/SIEMQueryAgent";
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -17,9 +18,7 @@ import { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 
-
 import "../css/markdown.css";
-import { SIEMQueryAgent } from "../components/case_page/siem_query_agent/SIEMQueryAgent";
 
 export const TaskPage = () => {
     const { orgId, caseId, taskId } = useParams();
@@ -214,7 +213,21 @@ export const TaskPage = () => {
                                             <Divider sx={{ paddingTop: 1, marginBottom: 1 }} />
 
                                             <Typography variant="h6">Description:</Typography>
-                                            <MarkdownPreview source={taskData.description} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main, fontSize: "1rem" }} />
+                                            <MarkdownPreview
+                                                source={taskData.description}
+                                                style={{
+                                                    width: "calc(100vw - 150px)",
+                                                    background: "transparent",
+                                                    color: darkTheme.palette.primary.main,
+                                                    fontSize: "1rem"
+                                                }}
+                                                components={{
+                                                    a: ({ children, className, ...props }) =>
+                                                        className && className.includes('anchor') ?
+                                                            <a style={{ display: "none" }}>{children}</a> :
+                                                            <a className={className} {...props}>{children}</a>
+                                                }}
+                                            />
                                             <Divider sx={{ paddingTop: 1, marginBottom: 1 }} />
                                         </Box>
                                         <Typography variant="h6" sx={{ mt: 2 }}>Task Log:</Typography>
@@ -223,108 +236,123 @@ export const TaskPage = () => {
                                                 taskLogs.map((log, index) => {
                                                     const isOpen = openLogIndexes.includes(index);
                                                     return (
-                                                    <Paper key={index} sx={{ padding: 1, margin: 1, overflowX: "scroll", width: "100%" }}>
-                                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
-                                                                <IconButton
-                                                                    onClick={() => toggleLogOpen(index)}
-                                                                    aria-label={isOpen ? "Collapse" : "Expand"}
-                                                                    size="small"
-                                                                    sx={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}
-                                                                >
-                                                                    <ExpandMoreIcon />
-                                                                </IconButton>
-                                                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                                                        <Typography sx={{ display: "inline-block" }}>{log.createdBy}</Typography>
-                                                                        <Typography sx={{ display: "inline-block", color: "weak.main" }}>{new Date(taskData.createdAt).toString()}</Typography>
+                                                        <Paper key={index} sx={{ padding: 1, margin: 1, overflowX: "scroll", width: "100%" }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+                                                                    <IconButton
+                                                                        onClick={() => toggleLogOpen(index)}
+                                                                        aria-label={isOpen ? "Collapse" : "Expand"}
+                                                                        size="small"
+                                                                        sx={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}
+                                                                    >
+                                                                        <ExpandMoreIcon />
+                                                                    </IconButton>
+                                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                                            <Typography sx={{ display: "inline-block" }}>{log.createdBy}</Typography>
+                                                                            <Typography sx={{ display: "inline-block", color: "weak.main" }}>{new Date(taskData.createdAt).toString()}</Typography>
+                                                                        </Box>
+                                                                        {!isOpen && (
+                                                                            <Typography
+                                                                                sx={{
+                                                                                    color: "weak.main",
+                                                                                    fontSize: "0.875rem",
+                                                                                    overflow: "hidden",
+                                                                                    textOverflow: "ellipsis",
+                                                                                    whiteSpace: "nowrap",
+                                                                                    mt: 0.5
+                                                                                }}
+                                                                            >
+                                                                                {log.message.split('\n')[0]}
+                                                                            </Typography>
+                                                                        )}
                                                                     </Box>
-                                                                    {!isOpen && (
-                                                                        <Typography 
-                                                                            sx={{ 
-                                                                                color: "weak.main", 
-                                                                                fontSize: "0.875rem",
-                                                                                overflow: "hidden",
-                                                                                textOverflow: "ellipsis",
-                                                                                whiteSpace: "nowrap",
-                                                                                mt: 0.5
-                                                                            }}
-                                                                        >
-                                                                            {log.message.split('\n')[0]}
-                                                                        </Typography>
-                                                                    )}
                                                                 </Box>
-                                                            </Box>
-                                                            <Box sx={{ display: 'flex', gap: 1 }}>
-                                                                {editingLogIndex === index ? (
-                                                                    <Box>
-                                                                        <IconButton
-                                                                            onClick={async () => {
-                                                                                await handleTaskLogSave(log.id, editingLogValue);
-                                                                                setEditingLogIndex(null);
-                                                                            }}
-                                                                            sx={{ mr: 1 }}
-                                                                            loading={logSaving}
-                                                                        >
-                                                                            <Tooltip title="Save" placement="top">
-                                                                                <SaveIcon />
-                                                                            </Tooltip>
-                                                                        </IconButton>
+                                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                                    {editingLogIndex === index ? (
+                                                                        <Box>
+                                                                            <IconButton
+                                                                                onClick={async () => {
+                                                                                    await handleTaskLogSave(log.id, editingLogValue);
+                                                                                    setEditingLogIndex(null);
+                                                                                }}
+                                                                                sx={{ mr: 1 }}
+                                                                                loading={logSaving}
+                                                                            >
+                                                                                <Tooltip title="Save" placement="top">
+                                                                                    <SaveIcon />
+                                                                                </Tooltip>
+                                                                            </IconButton>
+                                                                            <IconButton
+                                                                                onClick={() => {
+                                                                                    setEditingLogIndex(null);
+                                                                                    setEditingLogValue(log.message);
+                                                                                }}
+                                                                            >
+                                                                                <Tooltip title="Cancel" placement="top">
+                                                                                    <CloseIcon />
+                                                                                </Tooltip>
+                                                                            </IconButton>
+                                                                        </Box>
+                                                                    ) : (
+                                                                        <Tooltip title="Edit" placement="top">
+                                                                            <IconButton
+                                                                                onClick={() => {
+                                                                                    setEditingLogIndex(index);
+                                                                                    setEditingLogValue(log.message);
+                                                                                }}
+                                                                            >
+                                                                                <EditIcon />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    )}
+                                                                    <Tooltip title={copyButtonSuccess ? "Copied!" : "Copy"} placement="top">
                                                                         <IconButton
                                                                             onClick={() => {
-                                                                                setEditingLogIndex(null);
-                                                                                setEditingLogValue(log.message);
+                                                                                navigator.clipboard.writeText(log.message);
+                                                                                setCopyButtonSuccess(true);
+                                                                                setTimeout(() => setCopyButtonSuccess(false), 2000);
                                                                             }}
                                                                         >
-                                                                            <Tooltip title="Cancel" placement="top">
-                                                                                <CloseIcon />
-                                                                            </Tooltip>
-                                                                        </IconButton>
-                                                                    </Box>
-                                                                ) : (
-                                                                    <Tooltip title="Edit" placement="top">
-                                                                        <IconButton
-                                                                            onClick={() => {
-                                                                                setEditingLogIndex(index);
-                                                                                setEditingLogValue(log.message);
-                                                                            }}
-                                                                        >
-                                                                            <EditIcon />
+                                                                            {copyButtonSuccess ? <DoneIcon sx={{ color: "success.main" }} /> : <ContentCopyIcon />}
                                                                         </IconButton>
                                                                     </Tooltip>
-                                                                )}
-                                                                <Tooltip title={copyButtonSuccess ? "Copied!" : "Copy"} placement="top">
-                                                                    <IconButton
-                                                                        onClick={() => {
-                                                                            navigator.clipboard.writeText(log.message);
-                                                                            setCopyButtonSuccess(true);
-                                                                            setTimeout(() => setCopyButtonSuccess(false), 2000);
-                                                                        }}
-                                                                    >
-                                                                        {copyButtonSuccess ? <DoneIcon sx={{ color: "success.main" }} /> : <ContentCopyIcon />}
-                                                                    </IconButton>
-                                                                </Tooltip>
+                                                                </Box>
                                                             </Box>
-                                                        </Box>
-                                                        <Collapse in={isOpen}>
-                                                            {editingLogIndex === index ? (
-                                                                <TextField
-                                                                    multiline
-                                                                    fullWidth
-                                                                    value={editingLogValue}
-                                                                    onChange={e => setEditingLogValue(e.target.value)}
-                                                                    minRows={3}
-                                                                    sx={{
-                                                                        background: "transparent",
-                                                                        color: darkTheme.palette.primary.main,
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                <MarkdownPreview source={log.message} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main, fontSize: "1rem" }} />
-                                                            )}
-                                                        </Collapse>
-                                                    </Paper>
-                                                )})
+                                                            <Collapse in={isOpen}>
+                                                                {editingLogIndex === index ? (
+                                                                    <TextField
+                                                                        multiline
+                                                                        fullWidth
+                                                                        value={editingLogValue}
+                                                                        onChange={e => setEditingLogValue(e.target.value)}
+                                                                        minRows={3}
+                                                                        sx={{
+                                                                            background: "transparent",
+                                                                            color: darkTheme.palette.primary.main,
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <MarkdownPreview
+                                                                        source={log.message}
+                                                                        style={{
+                                                                            width: "calc(100vw - 150px)",
+                                                                            background: "transparent",
+                                                                            color: darkTheme.palette.primary.main,
+                                                                            fontSize: "1rem"
+                                                                        }}
+                                                                        components={{
+                                                                            a: ({ children, className, ...props }) =>
+                                                                                className && className.includes('anchor') ?
+                                                                                    <a style={{ display: "none" }}>{children}</a> :
+                                                                                    <a className={className} {...props}>{children}</a>
+                                                                        }}
+                                                                    />
+                                                                )}
+                                                            </Collapse>
+                                                        </Paper>
+                                                    )
+                                                })
                                             ) : (
                                                 <Typography sx={{ color: "weak.main" }}>No task logs have been found</Typography>
                                             )}
