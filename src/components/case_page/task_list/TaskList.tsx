@@ -60,6 +60,27 @@ export const TaskList: React.FC<TaskListProps> = ({
         if (!response.ok) throw new Error("Failed to delete task");
     };
 
+    const handleMassTaskDelete = async (selectedIds: string[]) => {
+        const deletePromises = selectedIds.map(async (id) => {
+            const formData = new FormData();
+            formData.append("soar_id", soarId);
+            formData.append("task_id", id);
+
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}soar/task/`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${cookies.token}` },
+                body: formData,
+            });
+
+            const json = await response.json();
+            if (json.code === "token_not_valid") return removeCookies("token");
+            if (!response.ok) throw new Error(`Failed to delete task ${id}`);
+        });
+
+        await Promise.all(deletePromises);
+        onRefresh();
+    };
+
     const columns: GridColDef[] = [
         { field: "id", headerName: "ID", flex: 0.2 },
         { field: "title", headerName: "Title", flex: 0.6 },
@@ -117,6 +138,8 @@ export const TaskList: React.FC<TaskListProps> = ({
                 columns={columns}
                 pageSize={10}
                 navigatePath={(id) => `/organizations/${orgId}/cases/${caseId}/tasks/${id}`}
+                onMassDelete={handleMassTaskDelete}
+                enableSelection={true}
             />
         </>
     );

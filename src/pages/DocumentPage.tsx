@@ -36,7 +36,7 @@ export const DocumentPage = () => {
 
     const getDocumentData = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_BACKEND_URL}soar/document/?soar_id=${targetSOAR?.id}&org_id=${orgId}&case_id=${caseId}&document_id=${documentId}`,
+            `${process.env.REACT_APP_BACKEND_URL}soar/case_document/?soar_id=${targetSOAR?.id}&org_id=${orgId}&case_id=${caseId}&document_id=${documentId}`,
             {
                 headers: {
                     Authorization: `Bearer ${cookies.token}`,

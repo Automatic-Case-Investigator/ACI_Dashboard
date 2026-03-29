@@ -40,12 +40,37 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         onRefresh();
     };
 
+    const handleMassDocumentDelete = async (selectedIds: string[]) => {
+        const deletePromises = selectedIds.map(async (id) => {
+            const formData = new FormData();
+            formData.append("soar_id", soarId);
+            formData.append("org_id", orgId);
+            formData.append("case_id", caseId);
+            formData.append("document_id", id);
+
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}soar/case_document/`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${cookies.token}` },
+                body: formData,
+            });
+
+            const json = await response.json();
+            if (json.code === "token_not_valid") return removeCookies("token");
+            if (!response.ok) throw new Error(`Failed to delete document ${id}`);
+        });
+
+        await Promise.all(deletePromises);
+        onRefresh();
+    };
+
     const handleDocumentDelete = async (params: GridRowParams) => {
         const formData = new FormData();
         formData.append("soar_id", soarId);
+        formData.append("org_id", orgId);
+        formData.append("case_id", caseId);
         formData.append("document_id", params.row.id);
 
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}soar/document/`, {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}soar/case_document/`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${cookies.token}` },
             body: formData,
@@ -100,6 +125,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                 columns={columns}
                 pageSize={10}
                 navigatePath={(id) => `/organizations/${orgId}/cases/${caseId}/documents/${id}`}
+                onMassDelete={handleMassDocumentDelete}
+                enableSelection={true}
             />
         </>
     );

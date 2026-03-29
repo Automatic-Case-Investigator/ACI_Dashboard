@@ -1,5 +1,6 @@
 import { createTheme } from "@mui/material/styles";
 import { ThemeOptions } from "@mui/material/styles/createTheme";
+import { APP_COLORS } from "./colors";
 
 // Extend the palette to include "weak"
 declare module "@mui/material/styles" {
@@ -23,36 +24,36 @@ export const darkTheme = createTheme({
     palette: {
         mode: "dark",
         background: {
-            default: "#0D0D10"
+            default: APP_COLORS.backgroundDefault
         },
         primary: {
-            main: "#E0E0E0"
+            main: APP_COLORS.primaryText
         },
         secondary: {
-            main: "#00FFEA"
+            main: APP_COLORS.secondaryAccent
         },
         weak: {
-            main: "#FFFFFFAA"
+            main: APP_COLORS.weakText
         }
     },
     typography: {
         body1: {
-            color: '#FFFFFF'
+            color: APP_COLORS.white
         },
     },
     components: {
         MuiCssBaseline: {
             styleOverrides: {
                 body: {
-                    scrollbarColor: "#CCCCFF33 #CCCCFF11",
+                    scrollbarColor: `${APP_COLORS.surfaceHover} ${APP_COLORS.surfaceMuted}`,
                     "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
-                        backgroundColor: "#CCCCFF11",
+                        backgroundColor: APP_COLORS.surfaceMuted,
                     },
                     "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
-                        backgroundColor: "#CCCCFF33",
+                        backgroundColor: APP_COLORS.surfaceHover,
                     },
                     "&::-webkit-scrollbar-corner, & *::-webkit-scrollbar-corner": {
-                        backgroundColor: "#CCCCFF11",
+                        backgroundColor: APP_COLORS.surfaceMuted,
                     },
                     fontWeightLight: 300,
                     fontWeightRegular: 400,
@@ -64,7 +65,7 @@ export const darkTheme = createTheme({
             styleOverrides: {
                 root: {
                     backdropFilter: 'blur(8px)',
-                    backgroundColor: '#121215',
+                    backgroundColor: APP_COLORS.backgroundPaper,
                 },
             },
         },
@@ -82,10 +83,10 @@ export const darkTheme = createTheme({
                         WebkitAppearance: 'none',
                         margin: 0,
                     },
-                    backgroundColor: "#CCCCFF05",
+                    backgroundColor: APP_COLORS.surfaceSoft,
                     '&:hover': {
-                        boxShadow: `0 0 5px 0 rgba(120,120,255,1)`,
-                        borderColor: "rgba(0,255,234,1)",
+                        boxShadow: `0 0 5px 0 ${APP_COLORS.glowBlue}`,
+                        borderColor: APP_COLORS.glowCyan,
                     },
                 }
             }
@@ -93,10 +94,10 @@ export const darkTheme = createTheme({
         MuiSelect: {
             styleOverrides: {
                 root: {
-                    backgroundColor: "#CCCCFF05",
+                    backgroundColor: APP_COLORS.surfaceSoft,
                     '&:hover': {
-                        boxShadow: `0 0 5px 0 rgba(120,120,255,1)`,
-                        borderColor: "rgba(0,255,234,1)",
+                        boxShadow: `0 0 5px 0 ${APP_COLORS.glowBlue}`,
+                        borderColor: APP_COLORS.glowCyan,
                     },
                 }
             }
@@ -104,10 +105,10 @@ export const darkTheme = createTheme({
         MuiIconButton: {
             styleOverrides: {
                 root: {
-                    color: '#FFFFFF',
+                    color: APP_COLORS.white,
                     transition: "50ms ease-out 50ms",
                     '&:hover': {
-                        backgroundColor: '#CCCCFF33'
+                        backgroundColor: APP_COLORS.surfaceHover
                     },
                 },
             },
@@ -115,7 +116,7 @@ export const darkTheme = createTheme({
         MuiAppBar: {
             styleOverrides: {
                 colorPrimary: {
-                    backgroundColor: "#0000ff10",
+                    backgroundColor: APP_COLORS.surfaceAppBar,
                     backdropFilter: "blur(6px)"
                 }
             }
@@ -124,7 +125,7 @@ export const darkTheme = createTheme({
             styleOverrides: {
                 paper: {
                     border: "none",
-                    backgroundColor: "#7070ff15",
+                    backgroundColor: APP_COLORS.surfaceDrawer,
                     backdropFilter: "blur(6px)"
                 },
             }
@@ -141,8 +142,8 @@ export const darkTheme = createTheme({
                 root: {
                     transition: 'background-color 0.1s, color 0.1s',
                     '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                        color: '#ffffff',
+                        backgroundColor: APP_COLORS.tabHoverBg,
+                        color: APP_COLORS.textHover,
                     },
                 },
             },
@@ -150,7 +151,7 @@ export const darkTheme = createTheme({
         MuiTooltip: {
             styleOverrides: {
                 tooltip: {
-                    backgroundColor: '#444466',
+                    backgroundColor: APP_COLORS.borderTooltip,
                 },
             }
         },
@@ -166,11 +167,11 @@ export const darkTheme = createTheme({
         MuiListItem: {
             styleOverrides: {
                 root: {
-                    backgroundColor: '#CCCCFF11',
+                    backgroundColor: APP_COLORS.surfaceMuted,
                     transition: "50ms ease-out 50ms",
                     backdropFilter: "blur(6px)",
                     '&:hover': {
-                        backgroundColor: '#CCCCFF33',
+                        backgroundColor: APP_COLORS.surfaceHover,
                     },
                 },
             },
@@ -178,7 +179,7 @@ export const darkTheme = createTheme({
         MuiAccordionSummary: {
             styleOverrides: {
                 root: {
-                    backgroundColor: "#8888ff20",
+                    backgroundColor: APP_COLORS.surfaceAccordion,
                 },
             },
         },

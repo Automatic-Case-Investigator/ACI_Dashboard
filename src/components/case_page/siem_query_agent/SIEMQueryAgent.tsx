@@ -9,6 +9,7 @@ import { useCookies } from 'react-cookie';
 import { useState, useRef } from 'react';
 import { Resizable } from 're-resizable';
 import { debounce } from 'lodash';
+import { SIEM_QUERY_AGENT_COLORS } from '../../../themes/colors';
 
 
 export const SIEMQueryAgent = () => {
@@ -30,6 +31,8 @@ export const SIEMQueryAgent = () => {
     });
 
     const [size, setSize] = useState({ width: 1000, height: 450 });
+
+    const palette = SIEM_QUERY_AGENT_COLORS;
 
     const handleEditorDidMount = (editor: any) => {
         editorRef.current = editor;
@@ -97,22 +100,25 @@ export const SIEMQueryAgent = () => {
     };
 
     const openingButtonStyle = {
-        backgroundColor: '#CCCCFF22',
+        backgroundColor: palette.launcherBg,
         '&:hover': {
-            backgroundColor: '#CCCCFF33',
+            backgroundColor: palette.launcherHover,
         },
-        boxShadow: 2,
-        border: '1px solid #bdbfff',
+        color: palette.textPrimary,
+        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)',
+        border: `1px solid ${palette.launcherBorder}`,
+        backdropFilter: 'blur(4px)',
     };
 
     const editorBoxStyle = {
         borderRadius: 2,
-        background: '#181a20',
+        background: palette.surfaceBg,
+        border: `1px solid ${palette.panelBorder}`,
         overflow: 'hidden',
-        mb: 2,
         p: 1,
         display: 'flex',
         flexDirection: 'column',
+        minHeight: 0,
     };
 
     return (
@@ -151,10 +157,10 @@ export const SIEMQueryAgent = () => {
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
-                            background: '#23263a',
+                            background: palette.panelBg,
+                            border: `1px solid ${palette.panelBorder}`,
                             borderRadius: 8,
-                            border: '1.5px solid #bdbfff',
-                            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.45)',
                             overflow: 'hidden',
                         }}
                         minWidth={350}
@@ -170,33 +176,56 @@ export const SIEMQueryAgent = () => {
                             topLeft: true,
                         }}
                     >
-                        <Box p={2} sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                        <Box p={2} sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', gap: 1 }}>
                             <Box display="flex" justifyContent="space-between" alignItems="center">
-                                <Typography color="#bdbfff">SIEM Query Agent</Typography>
-                                <Box>
-                                    <IconButton onClick={() => setOpen(false)} size="small" sx={{ color: '#bdbfff' }}>
-                                        <CloseIcon />
-                                    </IconButton>
-                                </Box>
+                                <Typography variant="subtitle1" sx={{ color: palette.textPrimary, fontWeight: 600 }}>
+                                    SIEM Query Agent
+                                </Typography>
+                                <IconButton onClick={() => setOpen(false)} size="small" sx={{ color: palette.textMuted }}>
+                                    <CloseIcon />
+                                </IconButton>
                             </Box>
-                            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                                <TextField size="small" placeholder="(WIP) Describe what you want to query..." value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} fullWidth />
-                                <IconButton onClick={debouncedHandleQueryGenerate} disabled={generationLoading} loading={generationLoading}>
+                            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ gap: 1 }}>
+                                <TextField
+                                    size="small"
+                                    placeholder="(WIP) Describe what you want to query..."
+                                    value={userPrompt}
+                                    onChange={(e) => setUserPrompt(e.target.value)}
+                                    fullWidth
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            backgroundColor: palette.surfaceBg,
+                                            color: palette.textPrimary,
+                                            '& fieldset': { borderColor: palette.panelBorder },
+                                            '&:hover fieldset': { borderColor: palette.textMuted },
+                                        },
+                                        '& .MuiInputBase-input::placeholder': {
+                                            color: palette.textMuted,
+                                            opacity: 1,
+                                        },
+                                    }}
+                                />
+                                <IconButton
+                                    onClick={debouncedHandleQueryGenerate}
+                                    disabled={generationLoading}
+                                    loading={generationLoading}
+                                    sx={{ color: palette.textPrimary, bgcolor: palette.surfaceBg, border: `1px solid ${palette.panelBorder}`, borderRadius: 1.5 }}
+                                >
                                     <ArrowForwardIcon />
                                 </IconButton>
                             </Box>
-                            <PanelGroup direction="horizontal" style={{ height: '100%' }}>
-                                <Panel minSize={20} defaultSize={50} style={{ display: 'flex', flexDirection: 'column' }}>
+                            <PanelGroup direction="horizontal" style={{ height: '100%', minHeight: 0 }}>
+                                <Panel minSize={20} defaultSize={50} style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                                     <Box sx={editorBoxStyle} flex={1} display='flex' flexDirection='column' height='100%'>
                                         <Box display="flex" justifyContent="space-between" alignItems="center">
-                                            <Typography variant="subtitle2" sx={{ mb: 0.5, color: '#bdbfff' }}>Request Body</Typography>
+                                            <Typography variant="subtitle2" sx={{ mb: 0.5, color: palette.textPrimary }}>Request Body</Typography>
                                             <Button
                                                 size="small"
                                                 sx={{ height: 24 }}
-                                                variant="outlined"
+                                                variant="contained"
                                                 onClick={handleSend}
                                                 disabled={queryLoading}
-                                                color="primary">
+                                                color="inherit">
                                                 {queryLoading ? 'Sending...' : 'Send'}
                                             </Button>
                                         </Box>
@@ -223,10 +252,10 @@ export const SIEMQueryAgent = () => {
                                         </Box>
                                     </Box>
                                 </Panel>
-                                <PanelResizeHandle style={{ border: '1px solid #444', background: '#444', cursor: 'row-resize' }} />
-                                <Panel minSize={20} defaultSize={50} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                <PanelResizeHandle style={{ width: 6, borderRadius: 3, margin: '0 6px', background: palette.handle, cursor: 'col-resize' }} />
+                                <Panel minSize={20} defaultSize={50} style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
                                     <Box sx={editorBoxStyle} flex={1} display='flex' flexDirection='column' height='100%'>
-                                        <Typography variant="subtitle2" sx={{ mb: 0.5, color: '#bdbfff' }}>Query Response</Typography>
+                                        <Typography variant="subtitle2" sx={{ mb: 0.5, color: palette.textPrimary }}>Query Response</Typography>
                                         <Box flex={1} display='flex' flexDirection='column' mt={0.5}>
                                             <MonacoEditor
                                                 height="100%"
