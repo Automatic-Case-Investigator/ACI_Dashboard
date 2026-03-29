@@ -14,6 +14,13 @@ export interface SOARData {
     isTarget: boolean;
 }
 
+export interface SIEMConfigFile {
+    filename: string;
+    content?: string;
+    file?: File | null;
+    hashDigest?: string;
+}
+
 export interface SIEMData {
     id: number;
     name: string;
@@ -25,6 +32,7 @@ export interface SIEMData {
     username?: string;
     password?: string;
     isTarget: boolean;
+    configFiles?: SIEMConfigFile[];
 }
 
 export interface TargetSOARInfo {
@@ -88,7 +96,11 @@ export interface ObservableData {
     reports: any;
 }
 
-export interface ModelInfo {
-    NAME: string;
-    SIZE: string;
+export interface DocumentData {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: Date;
+    createdBy: string;
+    category: string;
 }

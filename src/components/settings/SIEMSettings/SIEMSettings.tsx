@@ -54,6 +54,18 @@ export const SIEMSettings = () => {
         setEditDialogOpen(false);
     };
 
+    const normalizeConfigFiles = (configFiles: any): SIEMData["configFiles"] => {
+        if (!Array.isArray(configFiles)) {
+            return [];
+        }
+
+        return configFiles.map((file) => ({
+            filename: file?.filename || file?.name || '',
+            content: file?.content ?? file?.data ?? file?.file_content ?? '',
+            hashDigest: file?.hash_digest || file?.hashDigest || '',
+        }));
+    };
+
     const updateSiemsData = async () => {
         setSiemsLoading(true);
         try {
@@ -88,7 +100,8 @@ export const SIEMSettings = () => {
                 apiKey: siem.api_key,
                 username: siem.username,
                 password: siem.password,
-                isTarget: targetSIEM ? siem.id === targetSIEM.id : false
+                isTarget: targetSIEM ? siem.id === targetSIEM.id : false,
+                configFiles: normalizeConfigFiles(siem.config_files || siem.configFiles),
             }));
 
             setSiemsData(output);
@@ -182,6 +195,54 @@ export const SIEMSettings = () => {
         }
     };
 
+    const appendConfigFiles = (
+        requestBody: FormData,
+        configFiles?: SIEMData["configFiles"],
+        options?: { includeUntouchedAsEmpty?: boolean }
+    ) => {
+        const fileHashMap: Record<string, string> = {};
+        let hasConfigFiles = false;
+        const includeUntouchedAsEmpty = options?.includeUntouchedAsEmpty ?? false;
+
+        configFiles?.forEach((file) => {
+            const filename = file.filename || file.file?.name || '';
+            if (!filename) {
+                return;
+            }
+
+            if (file.file) {
+                requestBody.append('config_files', file.file, filename);
+                hasConfigFiles = true;
+                if (file.hashDigest) {
+                    fileHashMap[filename] = file.hashDigest;
+                }
+                return;
+            }
+
+            if (includeUntouchedAsEmpty) {
+                // Backend expects unchanged files to be re-sent with empty content.
+                requestBody.append('config_files', new Blob([''], { type: 'text/plain' }), filename);
+                hasConfigFiles = true;
+                if (file.hashDigest) {
+                    fileHashMap[filename] = file.hashDigest;
+                }
+                return;
+            }
+
+            if (typeof file.content === 'string' && file.content.length > 0) {
+                requestBody.append('config_files', new Blob([file.content], { type: 'text/plain' }), filename);
+                hasConfigFiles = true;
+                if (file.hashDigest) {
+                    fileHashMap[filename] = file.hashDigest;
+                }
+            }
+        });
+
+        if (hasConfigFiles) {
+            requestBody.append('config_file_hashes', JSON.stringify(fileHashMap));
+        }
+    };
+
     const handleSiemCreate = async (siemInfo: SIEMData) => {
         try {
             const requestBody = new FormData();
@@ -200,6 +261,8 @@ export const SIEMSettings = () => {
                 requestBody.append("username", siemInfo.username || '');
                 requestBody.append("password", siemInfo.password || '');
             }
+
+            appendConfigFiles(requestBody, siemInfo.configFiles);
 
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}siem/siem_info/`, {
                 method: "POST",
@@ -243,6 +306,8 @@ export const SIEMSettings = () => {
                 requestBody.append("username", updatedInfo.username || '');
                 requestBody.append("password", updatedInfo.password || '');
             }
+
+            appendConfigFiles(requestBody, updatedInfo.configFiles, { includeUntouchedAsEmpty: true });
 
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}siem/siem_info/`, {
                 method: "POST",
