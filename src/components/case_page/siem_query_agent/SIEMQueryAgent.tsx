@@ -126,8 +126,8 @@ export const SIEMQueryAgent = () => {
             <IconButton
                 sx={{
                     position: 'fixed',
-                    bottom: 20,
-                    right: 20,
+                    bottom: { xs: 72, sm: 20 },
+                    right: { xs: 8, sm: 20 },
                     ...openingButtonStyle
                 }}
                 onClick={() => setOpen(true)}
@@ -141,9 +141,10 @@ export const SIEMQueryAgent = () => {
                 <Box
                     sx={{
                         position: 'fixed',
-                        bottom: 80,
-                        right: 20,
+                        bottom: { xs: 120, sm: 80 },
+                        right: { xs: 8, sm: 20 },
                         zIndex: 1300,
+                        maxWidth: { xs: '96vw', sm: 'unset' },
                     }}
                 >
                     <Resizable
@@ -163,8 +164,8 @@ export const SIEMQueryAgent = () => {
                             boxShadow: '0 12px 30px rgba(0, 0, 0, 0.45)',
                             overflow: 'hidden',
                         }}
-                        minWidth={350}
-                        minHeight={400}
+                        minWidth={280}
+                        minHeight={320}
                         enable={{
                             top: true,
                             right: true,

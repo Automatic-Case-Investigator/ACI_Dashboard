@@ -1,31 +1,4 @@
-interface BaseRequestParams {
-    backendUrl: string;
-    token: string;
-}
-
-interface FetchTaskDataParams extends BaseRequestParams {
-    soarId: string;
-    orgId: string;
-    taskId: string;
-}
-
-interface FetchTaskLogsParams extends BaseRequestParams {
-    soarId: string;
-    taskId: string;
-}
-
-interface SaveTaskLogParams extends BaseRequestParams {
-    soarId: string;
-    taskId: string;
-    taskLogId: string;
-    taskLogData: string;
-}
-
-interface DeleteTaskLogParams extends BaseRequestParams {
-    soarId: string;
-    taskId: string;
-    taskLogId: string;
-}
+import { DeleteTaskLogParams, FetchTaskDataParams, FetchTaskLogsParams, SaveTaskLogParams } from "../../types/types";
 
 const fetchJson = async (url: string, token: string, init?: RequestInit) => {
     const response = await fetch(url, {

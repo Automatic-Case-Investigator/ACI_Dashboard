@@ -73,7 +73,7 @@ export const DocumentPage = () => {
                     <title>{documentData.title}</title>
                 </Helmet>
             )}
-            <Box sx={{ display: "flex", height: "100vh" }}>
+            <Box sx={{ display: "flex", minHeight: "100dvh" }}>
                 <HorizontalNavbar
                     names={[
                         "Organizations",
@@ -93,7 +93,7 @@ export const DocumentPage = () => {
                     ]}
                 />
                 <VerticalNavbar />
-                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5, height: "100vh", minHeight: 0, overflow: "auto", display: 'flex', flexDirection: 'column' }}>
+                <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: { xs: 1, sm: 2 }, mt: { xs: 5, sm: 5.5 }, minHeight: 0, overflow: "auto", display: 'flex', flexDirection: 'column' }}>
                     {targetSOAR ? (
                         errorMessage.length > 0 ? (
                             <Typography variant="body1">{errorMessage}</Typography>
@@ -124,12 +124,12 @@ export const DocumentPage = () => {
                                             <Divider sx={{ paddingTop: 1, marginBottom: 1 }} />
 
                                             <Typography variant="h6">Content:</Typography>
-                                            <MarkdownPreview source={documentData.content} style={{ width: "calc(100vw - 150px)", background: "transparent", color: darkTheme.palette.primary.main, fontSize: "1rem" }} />
+                                            <Box sx={{ width: "100%", overflowX: "auto" }}>
+                                                <MarkdownPreview source={documentData.content} style={{ width: "100%", background: "transparent", color: darkTheme.palette.primary.main, fontSize: "1rem" }} />
+                                            </Box>
                                             <Divider sx={{ paddingTop: 1, marginBottom: 1 }} />
                                         </Box>
-                                        <Box sx={{ position: "fixed", bottom: 12, right: 12 }}>
-                                            <SIEMQueryAgent />
-                                        </Box>
+                                        <SIEMQueryAgent />
                                     </>
                                 ) : (
                                     <PuffLoader color="#00ffea" />

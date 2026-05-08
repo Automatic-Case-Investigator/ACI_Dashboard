@@ -19,12 +19,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import React, { useState } from 'react';
 import { SIEM_CHOICES } from '../../../constants/platform-choices';
-import { CallbackFunction, SIEMConfigFile } from '../../../types/types';
-
-interface NewSIEMInfoDialogProps {
-    onClose: CallbackFunction;
-    onCreate: CallbackFunction;
-}
+import { NewSIEMInfoDialogProps, SIEMConfigFile } from '../../../types/types';
 
 const isValidURL = (url: string): boolean => {
     const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;

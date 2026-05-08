@@ -15,7 +15,7 @@ export const Settings = () => {
             <Box sx={{ display: "flex" }}>
                 <HorizontalNavbar names={["Settings"]} routes={["/settings"]} />
                 <VerticalNavbar />
-                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5, width: 'calc(100vw - 200px)' }}>
+                <Box component="main" sx={{ flexGrow: 1, minWidth: 0, width: '100%', p: { xs: 1, sm: 2 }, mt: { xs: 5, sm: 5.5 }, overflow: 'auto' }}>
                     <SOARSettings />
                     <Box sx={{ m: 2 }} />
                     <SIEMSettings />

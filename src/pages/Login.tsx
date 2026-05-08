@@ -3,11 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { useState, ChangeEvent } from "react";
 import { useCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
-
-interface TokenResponse {
-    access?: string;
-    detail?: string;
-}
+import { TokenResponse } from "../types/types";
 
 export const Login = () => {
     const [_cookies, setCookies, _removeCookies] = useCookies(["token"]);

@@ -2,6 +2,7 @@ import { Box, Collapse, IconButton, Menu, MenuItem, Paper, Tooltip, Typography }
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import Editor from '@monaco-editor/react';
+import type { editor } from 'monaco-editor';
 import DoneIcon from '@mui/icons-material/Done';
 import { darkTheme } from "../../themes/darkTheme";
 import EditIcon from '@mui/icons-material/Edit';
@@ -11,27 +12,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { TaskData, TaskLogData } from "../../types/types";
-
-interface TaskLogSectionProps {
-    taskData: TaskData;
-    taskLogs: TaskLogData[];
-    openLogIndexes: number[];
-    editingLogs: Record<string, string>;
-    logSaving: boolean;
-    copySuccessId: string | null;
-    menuAnchorEl: { [key: string]: HTMLButtonElement | null };
-    onToggleLogOpen: (index: number) => void;
-    onStartEdit: (logId: string, index: number, message: string) => void;
-    onSave: (logId: string) => Promise<void>;
-    onCancelEdit: (logId: string) => void;
-    onCopy: (message: string, logId: string) => void;
-    onMenuOpen: (event: React.MouseEvent<HTMLButtonElement>, logId: string) => void;
-    onMenuClose: (logId: string) => void;
-    onInvestigate: (message: string, logId: string) => void;
-    onDelete: (logId: string) => void;
-    onEditingChange: (logId: string, value: string | undefined) => void;
-}
+import { TaskLogSectionProps } from "../../types/types";
+import { useEffect, useRef } from "react";
 
 export const TaskLogSection: React.FC<TaskLogSectionProps> = ({
     taskData,
@@ -52,6 +34,34 @@ export const TaskLogSection: React.FC<TaskLogSectionProps> = ({
     onDelete,
     onEditingChange,
 }) => {
+
+    const editorRefs = useRef<
+        Record<string, editor.IStandaloneCodeEditor | null>
+    >({});
+
+    function handleEditorDidMount(
+        logId: string,
+        editor: editor.IStandaloneCodeEditor
+    ) {
+        editorRefs.current[logId] = editor;
+
+        requestAnimationFrame(() => {
+            editor.layout();
+        });
+    }
+
+    useEffect(() => {
+        openLogIndexes.forEach((index) => {
+            const log = taskLogs[index];
+
+            if (!log) return;
+
+            requestAnimationFrame(() => {
+                editorRefs.current[log.id]?.layout();
+            });
+        });
+    }, [openLogIndexes, taskLogs]);
+
     return (
         <>
             <Typography variant="h6" sx={{ mt: 2 }}>Task Log:</Typography>
@@ -61,7 +71,7 @@ export const TaskLogSection: React.FC<TaskLogSectionProps> = ({
                         const isOpen = openLogIndexes.includes(index);
                         const isEditing = Object.prototype.hasOwnProperty.call(editingLogs, log.id);
                         return (
-                            <Paper key={index} sx={{ padding: 1, margin: 1, overflowX: "scroll", width: "100%" }}>
+                            <Paper key={index} sx={{ p: { xs: 0.75, sm: 1 }, m: { xs: 0.5, sm: 1 }, overflowX: "auto", width: "100%" }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
                                         <IconButton
@@ -189,39 +199,41 @@ export const TaskLogSection: React.FC<TaskLogSectionProps> = ({
                                         >
                                             <Editor
                                                 key={`task-log-editor-${log.id}`}
-                                                path={`task-log-${log.id}.md`}
                                                 height="100%"
                                                 defaultLanguage="markdown"
                                                 value={editingLogs[log.id]}
+                                                onMount={(editor) => handleEditorDidMount(log.id, editor)}
                                                 onChange={(value) => onEditingChange(log.id, value)}
                                                 theme="vs-dark"
                                                 options={{
-                                                    minimap: { enabled: false },
+                                                    minimap: { enabled: true },
                                                     scrollBeyondLastLine: false,
                                                     wordWrap: 'on',
-                                                    lineNumbers: 'off',
+                                                    lineNumbers: 'on',
                                                     folding: false,
-                                                    automaticLayout: true,
+                                                    automaticLayout: false,
                                                     fontSize: 14,
                                                 }}
                                             />
                                         </Box>
                                     ) : (
-                                        <MarkdownPreview
-                                            source={log.message}
-                                            style={{
-                                                width: "calc(100vw - 150px)",
-                                                background: "transparent",
-                                                color: darkTheme.palette.primary.main,
-                                                fontSize: "1rem"
-                                            }}
-                                            components={{
-                                                a: ({ children, className, ...props }) =>
-                                                    className && className.includes('anchor') ?
-                                                        <a style={{ display: "none" }}>{children}</a> :
-                                                        <a className={className} {...props}>{children}</a>
-                                            }}
-                                        />
+                                        <Box sx={{ width: "100%", overflowX: "auto" }}>
+                                            <MarkdownPreview
+                                                source={log.message}
+                                                style={{
+                                                    width: "100%",
+                                                    background: "transparent",
+                                                    color: darkTheme.palette.primary.main,
+                                                    fontSize: "1rem"
+                                                }}
+                                                components={{
+                                                    a: ({ children, className, ...props }) =>
+                                                        className && className.includes('anchor') ?
+                                                            <a style={{ display: "none" }}>{children}</a> :
+                                                            <a className={className} {...props}>{children}</a>
+                                                }}
+                                            />
+                                        </Box>
                                     )}
                                 </Collapse>
                             </Paper>

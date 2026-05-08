@@ -1,27 +1,5 @@
 import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
-
-interface TaskInvestigationDialogProps {
-    open: boolean;
-    onClose: () => void;
-    webSearchEnabled: boolean;
-    setWebSearchEnabled: (value: boolean) => void;
-    earliestMagnitude: number | "";
-    setEarliestMagnitude: (value: number | "") => void;
-    earliestUnit: string;
-    setEarliestUnit: (value: string) => void;
-    vicinityMagnitude: number | "";
-    setVicinityMagnitude: (value: number | "") => void;
-    vicinityUnit: string;
-    setVicinityUnit: (value: string) => void;
-    maxIterations: number | "";
-    setMaxIterations: (value: number | "") => void;
-    additionalNotes: string;
-    setAdditionalNotes: (value: string) => void;
-    correctEarliestMagnitude: () => number;
-    correctVicinityMagnitude: () => number;
-    correctMaxIterations: () => number;
-    onInvestigate: () => void;
-}
+import { TaskInvestigationDialogProps } from "../../types/types";
 
 export const TaskInvestigationDialog: React.FC<TaskInvestigationDialogProps> = ({
     open,
@@ -38,11 +16,14 @@ export const TaskInvestigationDialog: React.FC<TaskInvestigationDialogProps> = (
     setVicinityUnit,
     maxIterations,
     setMaxIterations,
+    maxQueriesPerIteration,
+    setMaxQueriesPerIteration,
     additionalNotes,
     setAdditionalNotes,
     correctEarliestMagnitude,
     correctVicinityMagnitude,
     correctMaxIterations,
+    correctMaxQueriesPerIteration,
     onInvestigate,
 }) => {
     return (
@@ -131,6 +112,24 @@ export const TaskInvestigationDialog: React.FC<TaskInvestigationDialogProps> = (
                             onChange={(e) => setMaxIterations(e.target.value === "" ? "" : Number(e.target.value))}
                             onBlur={correctMaxIterations}
                             type="number"
+                            sx={{
+                                width: '100px',
+                                '& input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                                '& input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                                '& input[type=number]': { MozAppearance: 'textfield' },
+                            }}
+                        />
+                    </Box>
+
+                    <Box>
+                        <Typography variant="subtitle2" sx={{ mb: 1 }}>Maximum queries to generate per iteration:</Typography>
+                        <TextField
+                            size="small"
+                            value={maxQueriesPerIteration}
+                            onChange={(e) => setMaxQueriesPerIteration(e.target.value === "" ? "" : Number(e.target.value))}
+                            onBlur={correctMaxQueriesPerIteration}
+                            type="number"
+                            inputProps={{ max: 20 }}
                             sx={{
                                 width: '100px',
                                 '& input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 },

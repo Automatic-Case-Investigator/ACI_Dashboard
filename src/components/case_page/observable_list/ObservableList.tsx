@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActionObject, CallbackFunction, ObservableData } from "../../../types/types";
+import { ActionObject, ObservableData, ObservableListProps } from "../../../types/types";
 import { DataGrid, GridColDef, GridRowParams, GridRowSelectionModel } from "@mui/x-data-grid";
 import { Box, Dialog, IconButton, Paper, Tooltip } from "@mui/material";
 import { useCookies } from "react-cookie";
@@ -8,15 +8,6 @@ import PuffLoader from "react-spinners/PuffLoader";
 import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
 import { useNavigate } from "react-router-dom";
 import { red } from "@mui/material/colors";
-
-
-interface ObservableListProps {
-    observableList: ObservableData[];
-    soarId: string;
-    orgId: string;
-    caseId: string;
-    onRefresh: CallbackFunction;
-}
 
 export const ObservableList: React.FC<ObservableListProps> = ({ observableList, soarId, orgId, caseId, onRefresh }) => {
     const [loading, setLoading] = useState<boolean>(false);

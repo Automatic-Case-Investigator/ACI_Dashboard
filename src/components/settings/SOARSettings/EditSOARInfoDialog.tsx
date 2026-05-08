@@ -4,18 +4,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import React, { useState } from 'react';
 import { SOAR_CHOICES } from '../../../constants/platform-choices';
-import { CallbackFunction, SOARData } from '../../../types/types';
+import { EditSOARInfoDialogProps } from '../../../types/types';
 
 const isValidURL = (url: string): boolean => {
     const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
     return urlPattern.test(url);
 };
-
-interface EditSOARInfoDialogProps {
-    selectedSoarData?: SOARData;
-    onClose: CallbackFunction;
-    onSave: CallbackFunction;
-}
 
 export const EditSOARInfoDialog: React.FC<EditSOARInfoDialogProps> = ({ selectedSoarData, onClose, onSave }) => {
     const [currentName, setCurrentName] = useState<string>(selectedSoarData ? selectedSoarData.name : "");

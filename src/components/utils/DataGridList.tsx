@@ -1,20 +1,12 @@
 import { Box, Paper, Button, Fade, Typography, Dialog } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 // Added GridRowSelectionModel to imports
-import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
+import { DataGrid, GridRowSelectionModel } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import PuffLoader from "react-spinners/PuffLoader";
 import { useNavigate } from "react-router-dom";
 import { ConfirmationDialog } from "./ConfirmationDialog";
-
-interface DataGridListProps<T> {
-    data: T[];
-    columns: GridColDef[];
-    pageSize: number;
-    navigatePath?: (id: string) => string;
-    onMassDelete: (ids: string[]) => void | Promise<void>;
-    enableSelection: boolean;
-}
+import { DataGridListProps } from "../../types/types";
 
 export const DataGridList = <T extends { id: string | number; createdAt: Date | string }>({
     data,
@@ -50,7 +42,7 @@ export const DataGridList = <T extends { id: string | number; createdAt: Date | 
                     <PuffLoader color="#00ffea" />
                 </Box>
             ) : (
-                <Paper sx={{ height: "calc(100vh - 200px)", width: "calc(100vw - 160px)" }}>
+                <Paper sx={{ height: { xs: 'calc(100dvh - 220px)', md: 'calc(100dvh - 200px)' }, width: "100%", minWidth: 0 }}>
                     <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)} fullWidth>
                         <ConfirmationDialog
                             onCancel={() => setConfirmDialogOpen(false)}
@@ -90,7 +82,7 @@ export const DataGridList = <T extends { id: string | number; createdAt: Date | 
                     <Fade in={enableSelection && selectionModel.length > 0} timeout={300} unmountOnExit>
                         <Paper elevation={6} sx={{
                             position: 'fixed',
-                            bottom: 0,
+                            bottom: { xs: 64, sm: 0 },
                             left: '50%',
                             transform: 'translateX(-50%)',
                             zIndex: 1300,

@@ -8,18 +8,10 @@ import {
 import { GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { useState } from "react";
 import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
-import { ActionObject, CallbackFunction, TaskData } from "../../../types/types";
+import { ActionObject, TaskListProps } from "../../../types/types";
 import { useCookies } from "react-cookie";
 import { TaskPreview } from "../task_preview/TaskPreview";
 import { DataGridList } from "../../utils/DataGridList";
-
-interface TaskListProps {
-    taskList: TaskData[];
-    soarId: string;
-    orgId: string;
-    caseId: string;
-    onRefresh: CallbackFunction;
-}
 
 export const TaskList: React.FC<TaskListProps> = ({
     taskList,

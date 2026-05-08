@@ -1,35 +1,7 @@
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import TabPanel from '@mui/lab/TabPanel';
-
-export interface WebSearchEnableState {
-    task_generation: boolean;
-    activity_generation: boolean;
-    siem_investigation: boolean;
-}
-
-interface CaseAutomationsTabProps {
-    enableWebSearch: WebSearchEnableState;
-    setEnableWebSearch: (value: WebSearchEnableState) => void;
-    earliestMagnitude: number | "";
-    setEarliestMagnitude: (value: number | "") => void;
-    earliestUnit: string;
-    setEarliestUnit: (value: string) => void;
-    vicinityMagnitude: number | "";
-    setVicinityMagnitude: (value: number | "") => void;
-    vicinityUnit: string;
-    setVicinityUnit: (value: string) => void;
-    maxIterations: number | "";
-    setMaxIterations: (value: number | "") => void;
-    additionalNotes: string;
-    setAdditionalNotes: (value: string) => void;
-    correctEarliestMagnitude: () => number;
-    correctVicinityMagnitude: () => number;
-    correctMaxIterations: () => number;
-    onGenerateTask: () => void;
-    onGenerateActivity: () => void;
-    onInvestigateTask: () => void;
-}
+import { CaseAutomationsTabProps } from "../../../types/types";
 
 export const CaseAutomationsTab: React.FC<CaseAutomationsTabProps> = ({
     enableWebSearch,
@@ -44,14 +16,21 @@ export const CaseAutomationsTab: React.FC<CaseAutomationsTabProps> = ({
     setVicinityUnit,
     maxIterations,
     setMaxIterations,
+    maxQueriesPerIteration,
+    setMaxQueriesPerIteration,
     additionalNotes,
     setAdditionalNotes,
     correctEarliestMagnitude,
     correctVicinityMagnitude,
     correctMaxIterations,
+    correctMaxQueriesPerIteration,
     onGenerateTask,
     onGenerateActivity,
     onInvestigateTask,
+    reportTemplateIds,
+    selectedReportTemplateId,
+    setSelectedReportTemplateId,
+    onGenerateReport,
 }) => {
     return (
         <TabPanel value="4">
@@ -201,6 +180,23 @@ export const CaseAutomationsTab: React.FC<CaseAutomationsTabProps> = ({
                                 '& input[type=number]': { MozAppearance: 'textfield' },
                             }}
                         />
+                        <Box mb={1} />
+                        <Typography mb={1}>Maximum queries to generate per iteration</Typography>
+                        <TextField
+                            size="small"
+                            value={maxQueriesPerIteration}
+                            onChange={(e) => setMaxQueriesPerIteration(e.target.value === "" ? "" : Number(e.target.value))}
+                            onBlur={correctMaxQueriesPerIteration}
+                            type="number"
+                            inputProps={{ max: 20 }}
+                            sx={{
+                                width: '60px',
+                                mb: 2,
+                                '& input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                                '& input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                                '& input[type=number]': { MozAppearance: 'textfield' },
+                            }}
+                        />
 
                         <Typography mb={1}>Additional Notes</Typography>
                         <TextField
@@ -222,8 +218,40 @@ export const CaseAutomationsTab: React.FC<CaseAutomationsTabProps> = ({
                 </AccordionSummary>
                 <AccordionDetails>
                     <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
-                        (Coming soon) With the investigation results on the SOAR, the system generates a report summarizing the investigation process, findings, and recommended next steps.
+                        Generate a report summarizing the investigation process, findings, and recommended next steps.
                     </Typography>
+
+                    <Box sx={{ mt: 2, mb: 2 }}>
+                        <FormControl fullWidth size="small" disabled={reportTemplateIds.length === 0}>
+                            <InputLabel>Report Template</InputLabel>
+                            <Select
+                                label="Report Template"
+                                value={selectedReportTemplateId}
+                                onChange={(e) => setSelectedReportTemplateId(e.target.value)}
+                            >
+                                {reportTemplateIds.map((templateId) => (
+                                    <MenuItem key={templateId} value={templateId}>
+                                        {templateId}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        {reportTemplateIds.length === 0 && (
+                            <Typography variant="caption" color="text.secondary">
+                                No report templates found. Add templates in Agent Settings first.
+                            </Typography>
+                        )}
+                    </Box>
+
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        color="secondary"
+                        onClick={onGenerateReport}
+                        disabled={reportTemplateIds.length === 0 || !selectedReportTemplateId}
+                    >
+                        Run
+                    </Button>
                 </AccordionDetails>
             </Accordion>
         </TabPanel>

@@ -136,7 +136,7 @@ export const Cases = () => {
                 />
                 <VerticalNavbar />
 
-                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
+                <Box component="main" sx={{ flexGrow: 1, p: { xs: 1, sm: 2 }, mt: { xs: 5, sm: 5.5 } }}>
                     {/* Search and Sort Controls */}
                     <Box sx={{ width: "100%", display: "flex" }}>
                         <TextField
@@ -181,35 +181,21 @@ export const Cases = () => {
                                                 {cases.map((case_data) => (
                                                     <ListItem
                                                         key={case_data.id}
-                                                        sx={{ display: "block", cursor: 'pointer' }}
+                                                        sx={{ cursor: 'pointer' }}
                                                         onClick={() => navigate(`/organizations/${orgId}/cases/${case_data.id}`)}
                                                     >
-                                                        <ListItemIcon sx={{ display: "inline-block", verticalAlign: "middle" }}>
+                                                        <ListItemIcon>
                                                             <WorkIcon />
                                                         </ListItemIcon>
                                                         <ListItemText
-                                                            sx={{ display: "inline-block", verticalAlign: "middle" }}
-                                                            primaryTypographyProps={{
-                                                                sx: {
-                                                                    width: "calc(40vw - 150px)",
-                                                                    overflow: 'hidden',
-                                                                    textOverflow: 'ellipsis',
-                                                                    whiteSpace: 'nowrap',
-                                                                },
-                                                            }}
+                                                            sx={{ flex: '1 1 0', minWidth: 0 }}
+                                                            primaryTypographyProps={{ noWrap: true }}
                                                             primary={case_data.title}
                                                             secondary={`ID: ${case_data.id}`}
                                                         />
                                                         <ListItemText
-                                                            sx={{ display: "inline-block", verticalAlign: "middle", marginLeft: 10 }}
-                                                            secondaryTypographyProps={{
-                                                                sx: {
-                                                                    width: "calc(60vw - 150px)",
-                                                                    overflow: 'hidden',
-                                                                    textOverflow: 'ellipsis',
-                                                                    whiteSpace: 'nowrap',
-                                                                },
-                                                            }}
+                                                            sx={{ flex: '0 0 40%', minWidth: 0, display: { xs: 'none', md: 'block' }, ml: 2 }}
+                                                            secondaryTypographyProps={{ noWrap: true }}
                                                             secondary={`Description: ${case_data.description}`}
                                                         />
                                                     </ListItem>

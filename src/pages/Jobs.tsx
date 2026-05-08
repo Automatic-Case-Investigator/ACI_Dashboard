@@ -16,16 +16,7 @@ import { ConfirmationDialog } from "../components/utils/ConfirmationDialog";
 import { red } from "@mui/material/colors";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useCookies } from "react-cookie";
-import { ActionObject, CallbackFunction } from "../types/types";
-
-interface Job {
-    id: string;
-    status: string;
-    result: string;
-    createdAt: Date;
-    finishedAt: Date;
-    elapsedTime: string;
-}
+import { ActionObject, CallbackFunction, Job } from "../types/types";
 
 export const Jobs = () => {
     const [cookies, , removeCookies] = useCookies(["token"]);
@@ -194,8 +185,8 @@ export const Jobs = () => {
                     />
                 </Dialog>
 
-                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
-                    <Box sx={{ float: "right" }}>
+                <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: { xs: 1, sm: 2 }, mt: { xs: 5, sm: 5.5 } }}>
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mb: 1 }}>
                         {selectionModel.length > 0 && (
                             <Tooltip title="Delete Selection">
                                 <IconButton onClick={() => {
@@ -214,7 +205,7 @@ export const Jobs = () => {
                     </Box>
 
                     {errorMessage.length === 0 ? (
-                        <Paper sx={{ height: 600, width: "calc(100vw - 125px)", marginTop: 5.5 }}>
+                        <Paper sx={{ height: { xs: 'calc(100dvh - 220px)', md: 600 }, width: "100%", marginTop: 2 }}>
                             <DataGrid
                                 rows={jobList}
                                 columns={columns}
@@ -230,7 +221,7 @@ export const Jobs = () => {
                                 disableRowSelectionOnClick
                                 sx={{
                                     border: 0,
-                                    width: "calc(100vw - 125px)",
+                                    width: "100%",
                                     "& .MuiDataGrid-checkboxInput": {
                                         color: "primary.main",
                                         "&.Mui-checked": {

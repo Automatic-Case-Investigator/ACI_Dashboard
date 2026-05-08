@@ -1,12 +1,7 @@
 import { Box, Button, Modal, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { useCookies } from "react-cookie";
-import { CallbackFunction } from "../../../types/types";
-
-interface ResetCredentialsModalProps {
-    open: boolean;
-    onClose: CallbackFunction;
-}
+import { ResetCredentialsModalProps } from "../../../types/types";
 
 const style = {
     position: "absolute" as const,

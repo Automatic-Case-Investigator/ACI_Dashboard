@@ -1,5 +1,5 @@
-import { CaseData, ObservableData, TargetSIEMInfo, TargetSOARInfo, TaskData, DocumentData } from "../types/types";
-import { CaseAutomationsTab, WebSearchEnableState } from "../components/case_page/automations/Automations";
+import { CaseData, DocumentData, ObservableData, TargetSIEMInfo, TargetSOARInfo, TaskData, WebSearchEnableState } from "../types/types";
+import { CaseAutomationsTab } from "../components/case_page/automations/Automations";
 import { SIEMQueryAgent } from "../components/case_page/siem_query_agent/SIEMQueryAgent";
 import { ObservableList } from "../components/case_page/observable_list/ObservableList";
 import { DocumentList } from "../components/case_page/document_list/DocumentList";
@@ -83,7 +83,10 @@ export const CasePage = () => {
     const [vicinityMagnitude, setVicinityMagnitude] = useState<number | "">(savedSettings?.vicinityMagnitude ?? 1);
     const [vicinityUnit, setVicinityUnit] = useState<string>(savedSettings?.vicinityUnit ?? "hours");
     const [maxIterations, setMaxIterations] = useState<number | "">(savedSettings?.maxIterations ?? 3);
+    const [maxQueriesPerIteration, setMaxQueriesPerIteration] = useState<number | "">(savedSettings?.maxQueriesPerIteration ?? 5);
     const [additionalNotes, setAdditionalNotes] = useState<string>(savedSettings?.additionalNotes ?? "");
+    const [reportTemplates, setReportTemplates] = useState<Record<string, string>>({});
+    const [selectedReportTemplateId, setSelectedReportTemplateId] = useState<string>("");
     // component open states
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
     const getCaseData = async () => {
@@ -170,6 +173,34 @@ export const CasePage = () => {
             setObservables(rawData.observables);
         }
     };
+    const getReportTemplates = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}ai_backend/settings/`,
+            {
+                headers: {
+                    Authorization: `Bearer ${cookies.token}`,
+                },
+            }
+        );
+        const rawData = await response.json();
+        if (rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+        if (rawData.error) {
+            setErrorMessage(rawData.error);
+        } else {
+            const templates = rawData.settings?.report_templates || {};
+            setReportTemplates(templates);
+            setSelectedReportTemplateId((currentId) => {
+                if (currentId && templates[currentId] !== undefined) {
+                    return currentId;
+                }
+
+                return Object.keys(templates)[0] || "";
+            });
+        }
+    };
     const generateTask = async () => {
         const requestBody = new FormData();
         requestBody.append("soar_id", targetSOAR?.id || "");
@@ -243,6 +274,7 @@ export const CasePage = () => {
         requestBody.append("vicinity_magnitude", correctedVicinityMagnitude.toString());
         requestBody.append("vicinity_unit", vicinityUnit);
         requestBody.append("max_iterations", correctedMaxIterations.toString());
+        requestBody.append("max_queries_per_iteration", correctMaxQueriesPerIteration().toString());
         requestBody.append("additional_notes", additionalNotes);
         const response = await fetch(
             `${process.env.REACT_APP_BACKEND_URL}ai_backend/automatic_investigation/investigate/`,
@@ -268,6 +300,44 @@ export const CasePage = () => {
         }
         setSnackbarOpen(true);
     };
+    const generateReport = async () => {
+        if (!selectedReportTemplateId) {
+            setSnackbarMessage("Please select a report template before generating a report.");
+            setSnackbarSuccessful(false);
+            setSnackbarOpen(true);
+            return;
+        }
+
+        const requestBody = new FormData();
+        requestBody.append("soar_id", targetSOAR?.id || "");
+        requestBody.append("org_id", orgId);
+        requestBody.append("case_id", caseId);
+        requestBody.append("report_template_id", selectedReportTemplateId);
+
+        const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}ai_backend/report_generation/generate/`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${cookies.token}`,
+                },
+                body: requestBody,
+            }
+        );
+        const rawData = await response.json();
+        if (rawData.code === "token_not_valid") {
+            removeCookies("token");
+            return;
+        }
+        if (rawData.message === "Success") {
+            setSnackbarMessage("Successfully created report generation job. Check jobs page for details.");
+            setSnackbarSuccessful(true);
+        } else {
+            setSnackbarMessage(rawData.error || "Failed communicating with the backend. Contact administrators.");
+            setSnackbarSuccessful(false);
+        }
+        setSnackbarOpen(true);
+    };
     const correctEarliestMagnitude = () => {
         if (earliestMagnitude === "" || earliestMagnitude <= 0) {
             setEarliestMagnitude(1);
@@ -282,6 +352,17 @@ export const CasePage = () => {
         }
         return maxIterations;
     }
+    const correctMaxQueriesPerIteration = () => {
+        if (maxQueriesPerIteration === "" || maxQueriesPerIteration <= 0) {
+            setMaxQueriesPerIteration(1);
+            return 1;
+        }
+        if (maxQueriesPerIteration > 20) {
+            setMaxQueriesPerIteration(20);
+            return 20;
+        }
+        return maxQueriesPerIteration;
+    }
     const correctVicinityMagnitude = () => {
         if (vicinityMagnitude === "" || vicinityMagnitude <= 0) {
             setVicinityMagnitude(1);
@@ -289,11 +370,14 @@ export const CasePage = () => {
         }
         return vicinityMagnitude;
     }
-    const updateData = () => {
-        getCaseData();
-        getObservables();
-        getTaskList();
-        getDocumentList();
+    const updateData = async () => {
+        await Promise.all([
+            getCaseData(),
+            getObservables(),
+            getTaskList(),
+            getDocumentList(),
+            getReportTemplates(),
+        ]);
     };
     const refresh = async () => {
         setLoading(true);
@@ -303,6 +387,7 @@ export const CasePage = () => {
     const debouncedGenerateTask = debounce(generateTask, 300);
     const debouncedGenerateActivity = debounce(generateActivity, 300);
     const debouncedInvestigateTask = debounce(investigateTask, 300);
+    const debouncedGenerateReport = debounce(generateReport, 300);
     // Save automation settings to localStorage whenever any of them change
     useEffect(() => {
         const automationSettings = {
@@ -312,10 +397,11 @@ export const CasePage = () => {
             vicinityMagnitude,
             vicinityUnit,
             maxIterations,
+            maxQueriesPerIteration,
             additionalNotes
         };
         localStorage.setItem(automationSettingsKey, JSON.stringify(automationSettings));
-    }, [enableWebSearch, earliestMagnitude, earliestUnit, vicinityMagnitude, vicinityUnit, maxIterations, additionalNotes]);
+    }, [enableWebSearch, earliestMagnitude, earliestUnit, vicinityMagnitude, vicinityUnit, maxIterations, maxQueriesPerIteration, additionalNotes]);
     useEffect(() => {
         if (!targetSOAR) return;
         refresh();
@@ -346,7 +432,7 @@ export const CasePage = () => {
                         {snackbarMessage}
                     </Alert>
                 </Snackbar>
-                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5, width: "calc(100vw - 110px)" }}>
+                <Box component="main" sx={{ flexGrow: 1, minWidth: 0, width: "100%", p: { xs: 1, sm: 2 }, mt: { xs: 5, sm: 5.5 }, overflow: "auto" }}>
                     {
                         targetSOAR ? (
                             errorMessage.length > 0 ? (
@@ -387,20 +473,22 @@ export const CasePage = () => {
                                                         </TabList>
                                                     </Box>
                                                     <TabPanel value="0">
-                                                        <MarkdownPreview
-                                                            source={caseData.description}
-                                                            style={{
-                                                                width: "calc(100vw - 150px)",
-                                                                background: "transparent",
-                                                                color: darkTheme.palette.primary.main
-                                                            }}
-                                                            components={{
-                                                                a: ({ children, className, ...props }) =>
-                                                                    className && className.includes('anchor') ?
-                                                                        <a style={{ display: "none" }}>{children}</a> :
-                                                                        <a className={className} {...props}>{children}</a>
-                                                            }}
-                                                        />
+                                                        <Box sx={{ width: "100%", overflowX: "auto" }}>
+                                                            <MarkdownPreview
+                                                                source={caseData.description}
+                                                                style={{
+                                                                    width: "100%",
+                                                                    background: "transparent",
+                                                                    color: darkTheme.palette.primary.main
+                                                                }}
+                                                                components={{
+                                                                    a: ({ children, className, ...props }) =>
+                                                                        className && className.includes('anchor') ?
+                                                                            <a style={{ display: "none" }}>{children}</a> :
+                                                                            <a className={className} {...props}>{children}</a>
+                                                                }}
+                                                            />
+                                                        </Box>
                                                     </TabPanel>
                                                     <TabPanel value="1">
                                                         <ObservableList observableList={observables} soarId={targetSOAR.id} orgId={orgId} caseId={caseId} onRefresh={refresh} />
@@ -424,19 +512,24 @@ export const CasePage = () => {
                                                         setVicinityUnit={setVicinityUnit}
                                                         maxIterations={maxIterations}
                                                         setMaxIterations={setMaxIterations}
+                                                        maxQueriesPerIteration={maxQueriesPerIteration}
+                                                        setMaxQueriesPerIteration={setMaxQueriesPerIteration}
                                                         additionalNotes={additionalNotes}
                                                         setAdditionalNotes={setAdditionalNotes}
                                                         correctEarliestMagnitude={correctEarliestMagnitude}
                                                         correctVicinityMagnitude={correctVicinityMagnitude}
                                                         correctMaxIterations={correctMaxIterations}
+                                                        correctMaxQueriesPerIteration={correctMaxQueriesPerIteration}
                                                         onGenerateTask={debouncedGenerateTask}
                                                         onGenerateActivity={debouncedGenerateActivity}
                                                         onInvestigateTask={debouncedInvestigateTask}
+                                                        reportTemplateIds={Object.keys(reportTemplates)}
+                                                        selectedReportTemplateId={selectedReportTemplateId}
+                                                        setSelectedReportTemplateId={setSelectedReportTemplateId}
+                                                        onGenerateReport={debouncedGenerateReport}
                                                     />
                                                 </TabContext>
-                                                <Box sx={{ position: "fixed", bottom: 12, right: 12 }}>
-                                                    <SIEMQueryAgent />
-                                                </Box>
+                                                <SIEMQueryAgent />
                                             </>
                                         ) : (
                                             <PuffLoader color="#00ffea" />

@@ -15,12 +15,7 @@ import { SIEM_CHOICES } from "../../../constants/platform-choices";
 import { NewSIEMInfoDialog } from "./NewSIEMInfoDialog";
 import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
 import { useCookies } from "react-cookie";
-import { SIEMData } from "../../../types/types";
-
-interface ActionObject {
-    func?: (...args: any[]) => Promise<void>;
-    args?: any[];
-}
+import { ActionObject, SIEMData } from "../../../types/types";
 
 export const SIEMSettings = () => {
     const [cookies, _setCookie, removeCookies] = useCookies(["token"]);
@@ -458,7 +453,7 @@ export const SIEMSettings = () => {
                             </Tooltip>
                         </Box>
                     </Box>
-                    <Paper sx={{ height: 400, width: "calc(100vw - 125px)" }}>
+                    <Paper sx={{ height: { xs: 'calc(100dvh - 240px)', md: 400 }, width: "100%" }}>
                         <DataGrid
                             rows={siemsData}
                             columns={columns}

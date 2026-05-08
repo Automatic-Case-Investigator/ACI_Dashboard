@@ -19,19 +19,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import React, { useEffect, useState } from 'react';
 import { SIEM_CHOICES } from '../../../constants/platform-choices';
-import { CallbackFunction, SIEMConfigFile, SIEMData } from '../../../types/types';
+import { EditSIEMInfoDialogProps, SIEMConfigFile } from '../../../types/types';
 import { useCookies } from 'react-cookie';
 
 const isValidURL = (url: string): boolean => {
     const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
     return urlPattern.test(url);
 };
-
-interface EditSIEMInfoDialogProps {
-    selectedSiemData?: SIEMData;
-    onClose: CallbackFunction;
-    onSave: CallbackFunction;
-}
 
 export const EditSIEMInfoDialog: React.FC<EditSIEMInfoDialogProps> = ({
     selectedSiemData,

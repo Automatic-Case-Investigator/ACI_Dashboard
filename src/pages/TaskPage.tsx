@@ -71,6 +71,7 @@ export const TaskPage = () => {
     const [vicinityMagnitude, setVicinityMagnitude] = useState<number | "">(savedSettings?.vicinityMagnitude ?? 1);
     const [vicinityUnit, setVicinityUnit] = useState<string>(savedSettings?.vicinityUnit ?? "hours");
     const [maxIterations, setMaxIterations] = useState<number | "">(savedSettings?.maxIterations ?? 3);
+    const [maxQueriesPerIteration, setMaxQueriesPerIteration] = useState<number | "">(savedSettings?.maxQueriesPerIteration ?? 5);
     const [additionalNotes, setAdditionalNotes] = useState<string>(savedSettings?.additionalNotes ?? "");
     const navigate = useNavigate();
     const handleLogInvestigate = (logMessage: string, logId: string) => {
@@ -99,6 +100,17 @@ export const TaskPage = () => {
         }
         return maxIterations;
     };
+    const correctMaxQueriesPerIteration = () => {
+        if (typeof maxQueriesPerIteration === "string" || maxQueriesPerIteration <= 0) {
+            setMaxQueriesPerIteration(1);
+            return 1;
+        }
+        if (maxQueriesPerIteration > 20) {
+            setMaxQueriesPerIteration(20);
+            return 20;
+        }
+        return maxQueriesPerIteration;
+    };
     const investigateActivity = async () => {
         const correctedEarliestMagnitude = correctEarliestMagnitude();
         const correctedVicinityMagnitude = correctVicinityMagnitude();
@@ -114,6 +126,7 @@ export const TaskPage = () => {
         requestBody.append("vicinity_magnitude", correctedVicinityMagnitude.toString());
         requestBody.append("vicinity_unit", vicinityUnit);
         requestBody.append("max_iterations", correctedMaxIterations.toString());
+        requestBody.append("max_queries_per_iteration", correctMaxQueriesPerIteration().toString());
         requestBody.append("additional_notes", additionalNotes);
         console.log("start investigation");
         try {
@@ -176,6 +189,7 @@ export const TaskPage = () => {
             vicinityMagnitude: correctedVicinityMagnitude,
             vicinityUnit,
             maxIterations: correctedMaxIterations,
+            maxQueriesPerIteration: correctMaxQueriesPerIteration(),
             enableWebSearch: {
                 ...loadAutomationSettings()?.enableWebSearch,
                 siem_investigation: webSearchEnabled
@@ -339,7 +353,7 @@ export const TaskPage = () => {
                     <title>{taskData.title}</title>
                 </Helmet>
             )}
-            <Box sx={{ display: "flex", height: "100vh" }}>
+            <Box sx={{ display: "flex", minHeight: "100dvh" }}>
                 <HorizontalNavbar
                     names={[
                         "Organizations",
@@ -374,7 +388,7 @@ export const TaskPage = () => {
                         {snackbarMessage}
                     </Alert>
                 </Snackbar>
-                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5, height: "100vh", minHeight: 0, overflow: "auto", display: 'flex', flexDirection: 'column' }}>
+                <Box component="main" sx={{ flexGrow: 1, minWidth: 0, p: { xs: 1, sm: 2 }, mt: { xs: 5, sm: 5.5 }, minHeight: 0, overflow: "auto", display: 'flex', flexDirection: 'column' }}>
                     {targetSOAR ? (
                         errorMessage.length > 0 ? (
                             <Typography variant="body1">{errorMessage}</Typography>
@@ -414,9 +428,7 @@ export const TaskPage = () => {
                                                 });
                                             }}
                                         />
-                                        <Box sx={{ position: "fixed", bottom: 12, right: 12 }}>
-                                            <SIEMQueryAgent />
-                                        </Box>
+                                        <SIEMQueryAgent />
                                         <TaskInvestigationDialog
                                             open={investigationModalOpen}
                                             onClose={() => setInvestigationModalOpen(false)}
@@ -432,11 +444,14 @@ export const TaskPage = () => {
                                             setVicinityUnit={setVicinityUnit}
                                             maxIterations={maxIterations}
                                             setMaxIterations={setMaxIterations}
+                                            maxQueriesPerIteration={maxQueriesPerIteration}
+                                            setMaxQueriesPerIteration={setMaxQueriesPerIteration}
                                             additionalNotes={additionalNotes}
                                             setAdditionalNotes={setAdditionalNotes}
                                             correctEarliestMagnitude={correctEarliestMagnitude}
                                             correctVicinityMagnitude={correctVicinityMagnitude}
                                             correctMaxIterations={correctMaxIterations}
+                                            correctMaxQueriesPerIteration={correctMaxQueriesPerIteration}
                                             onInvestigate={debouncedInvestigateActivity}
                                         />
                                         <Divider sx={{ paddingTop: 1, marginBottom: 2 }} />

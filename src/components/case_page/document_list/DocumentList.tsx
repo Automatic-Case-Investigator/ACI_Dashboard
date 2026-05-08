@@ -6,18 +6,10 @@ import {
 } from "@mui/material";
 import { GridColDef, GridRowParams } from "@mui/x-data-grid";
 import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
-import { ActionObject, CallbackFunction, DocumentData } from "../../../types/types";
+import { ActionObject, DocumentListProps } from "../../../types/types";
 import { useCookies } from "react-cookie";
 import { DataGridList } from "../../utils/DataGridList";
 import { useState } from "react";
-
-interface DocumentListProps {
-    documentList: DocumentData[];
-    soarId: string;
-    orgId: string;
-    caseId: string;
-    onRefresh: CallbackFunction;
-}
 
 export const DocumentList: React.FC<DocumentListProps> = ({
     documentList,

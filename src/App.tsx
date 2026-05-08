@@ -16,6 +16,7 @@ import { TaskPage } from "./pages/TaskPage";
 import { CookiesProvider } from "react-cookie";
 import { AuthMiddleware } from "./middlewares/authMiddleware";
 import { DocumentPage } from "./pages/DocumentPage";
+import { NavDrawerProvider } from "./contexts/NavDrawerContext";
 
 
 
@@ -24,6 +25,7 @@ function App() {
         <CookiesProvider>
             <ThemeProvider theme={darkTheme}>
                 <CssBaseline />
+                <NavDrawerProvider>
                 <Router>
                     <Routes>
                         <Route path="/" element={<AuthMiddleware child={<Home />} />}></Route>
@@ -37,6 +39,7 @@ function App() {
                         <Route path="*" element={<Navigate to="/" />}></Route>
                     </Routes>
                 </Router>
+                </NavDrawerProvider>
             </ThemeProvider>
         </CookiesProvider>
     );

@@ -15,12 +15,7 @@ import { SOAR_CHOICES } from "../../../constants/platform-choices";
 import { NewSOARInfoDialog } from "./NewSOARInfoDialog";
 import { ConfirmationDialog } from "../../utils/ConfirmationDialog";
 import { useCookies } from "react-cookie";
-import { ActionObject, CallbackFunction, SOARData } from "../../../types/types";
-
-interface TargetSOAR {
-    id: number;
-    [key: string]: any;
-}
+import { ActionObject, CallbackFunction, SOARData, TargetSOARStorageData } from "../../../types/types";
 
 export const SOARSettings = () => {
     const [cookies, _setCookies, removeCookies] = useCookies(["token"]);
@@ -74,7 +69,7 @@ export const SOARSettings = () => {
 
         const output: SOARData[] = [];
         const raw = localStorage.getItem("targetSOAR");
-        const targetSOAR: TargetSOAR | null = raw ? (JSON.parse(raw) as TargetSOAR) : null;
+        const targetSOAR: TargetSOARStorageData | null = raw ? (JSON.parse(raw) as TargetSOARStorageData) : null;
         
         if (rawData.message) {
             for (let soar of rawData.message) {
@@ -308,7 +303,7 @@ export const SOARSettings = () => {
             setSoarsData(updatedData);
         } else if (soarsData.length >= 1) {
             // modify SOAR data stored in local storage if the react states are changed
-            let targetSOAR: TargetSOAR | null = JSON.parse(localStorage.getItem("targetSOAR") || "null");
+            let targetSOAR: TargetSOARStorageData | null = JSON.parse(localStorage.getItem("targetSOAR") || "null");
             if (!targetSOAR) {
                 return;
             }
@@ -372,7 +367,7 @@ export const SOARSettings = () => {
                                 </Tooltip>
                             </Box>
                         </Box>
-                        <Paper sx={{ height: 400, width: "calc(100vw - 125px)" }}>
+                        <Paper sx={{ height: { xs: 'calc(100dvh - 240px)', md: 400 }, width: "100%" }}>
                             <DataGrid
                                 rows={soarsData}
                                 columns={columns}

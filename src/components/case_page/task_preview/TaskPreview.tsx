@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { CallbackFunction, TargetSOARInfo, TaskData, TaskLogData } from "../../../types/types";
-import { Box, Button, Divider, Drawer, Paper, Typography, Collapse, IconButton, Tooltip, Menu, MenuItem, TextField } from "@mui/material";
+import { TargetSOARInfo, TaskData, TaskLogData, TaskPreviewProps } from "../../../types/types";
+import { Box, Button, Divider, Drawer, Paper, Typography, Collapse, IconButton, Tooltip, Menu, MenuItem, TextField, Snackbar, Alert } from "@mui/material";
 import MarkdownPreview from '@uiw/react-markdown-preview';
-
+import { debounce } from 'lodash';
 import { useCookies } from "react-cookie";
 import { darkTheme } from "../../../themes/darkTheme";
 import PuffLoader from "react-spinners/PuffLoader";
 import { useNavigate } from "react-router-dom";
+import { TaskInvestigationDialog } from "../../task_page/TaskInvestigationDialog";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -16,14 +17,6 @@ import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import DoneIcon from '@mui/icons-material/Done';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-
-interface TaskPreviewProps {
-    open: boolean;
-    onClose: CallbackFunction;
-    orgId: string;
-    caseId: string;
-    taskId: string;
-}
 
 export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, caseId, taskId }) => {
     const [cookies, _setCookies, removeCookies] = useCookies(["token"]);
@@ -39,6 +32,39 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
             return null;
         }
     });
+    const [targetSIEM, _setTargetSIEM] = useState<any | null>(() => {
+        try {
+            const saved = localStorage.getItem("targetSIEM");
+            return saved ? JSON.parse(saved) : null;
+        } catch {
+            return null;
+        }
+    });
+
+    const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+    const [snackbarMessage, setSnackbarMessage] = useState<string>("");
+    const [snackbarSuccessful, setSnackbarSuccessful] = useState<boolean>(true);
+
+    const [investigationModalOpen, setInvestigationModalOpen] = useState<boolean>(false);
+    const [investigationLogMessage, setInvestigationLogMessage] = useState<string>("");
+    const [investigationLogId, setInvestigationLogId] = useState<string>("");
+
+    const loadAutomationSettings = () => {
+        try {
+            const saved = localStorage.getItem("caseAutomationSettings");
+            if (saved) return JSON.parse(saved);
+        } catch {}
+        return null;
+    };
+    const savedSettings = loadAutomationSettings();
+    const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(savedSettings?.enableWebSearch?.siem_investigation ?? false);
+    const [earliestMagnitude, setEarliestMagnitude] = useState<number | "">(savedSettings?.earliestMagnitude ?? 1);
+    const [earliestUnit, setEarliestUnit] = useState<string>(savedSettings?.earliestUnit ?? "years");
+    const [vicinityMagnitude, setVicinityMagnitude] = useState<number | "">(savedSettings?.vicinityMagnitude ?? 1);
+    const [vicinityUnit, setVicinityUnit] = useState<string>(savedSettings?.vicinityUnit ?? "hours");
+    const [maxIterations, setMaxIterations] = useState<number | "">(savedSettings?.maxIterations ?? 3);
+    const [maxQueriesPerIteration, setMaxQueriesPerIteration] = useState<number | "">(savedSettings?.maxQueriesPerIteration ?? 5);
+    const [additionalNotes, setAdditionalNotes] = useState<string>(savedSettings?.additionalNotes ?? "");
 
     const navigate = useNavigate();
 
@@ -54,8 +80,94 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
         setOpenLogIndexes(prev => prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]);
     }
 
-    const handleLogInvestigate = (logMessage: string) => {
-        localStorage.setItem("taskLogForInvestigation", logMessage);
+    const correctEarliestMagnitude = () => {
+        if (typeof earliestMagnitude === "string" || earliestMagnitude <= 0) { setEarliestMagnitude(1); return 1; }
+        return earliestMagnitude;
+    };
+    const correctVicinityMagnitude = () => {
+        if (typeof vicinityMagnitude === "string" || vicinityMagnitude <= 0) { setVicinityMagnitude(1); return 1; }
+        return vicinityMagnitude;
+    };
+    const correctMaxIterations = () => {
+        if (typeof maxIterations === "string" || maxIterations <= 0) { setMaxIterations(1); return 1; }
+        return maxIterations;
+    };
+    const correctMaxQueriesPerIteration = () => {
+        if (typeof maxQueriesPerIteration === "string" || maxQueriesPerIteration <= 0) { setMaxQueriesPerIteration(1); return 1; }
+        if (maxQueriesPerIteration > 20) { setMaxQueriesPerIteration(20); return 20; }
+        return maxQueriesPerIteration;
+    };
+
+    const investigateActivity = async () => {
+        const correctedEarliestMagnitude = correctEarliestMagnitude();
+        const correctedVicinityMagnitude = correctVicinityMagnitude();
+        const correctedMaxIterations = correctMaxIterations();
+        const requestBody = new FormData();
+        requestBody.append("siem_id", targetSIEM?.id || "");
+        requestBody.append("soar_id", targetSOAR?.id || "");
+        requestBody.append("org_id", orgId || "");
+        requestBody.append("case_id", caseId || "");
+        requestBody.append("activity_id", investigationLogId);
+        requestBody.append("earliest_magnitude", correctedEarliestMagnitude.toString());
+        requestBody.append("earliest_unit", earliestUnit);
+        requestBody.append("vicinity_magnitude", correctedVicinityMagnitude.toString());
+        requestBody.append("vicinity_unit", vicinityUnit);
+        requestBody.append("max_iterations", correctedMaxIterations.toString());
+        requestBody.append("max_queries_per_iteration", correctMaxQueriesPerIteration().toString());
+        requestBody.append("additional_notes", additionalNotes);
+        try {
+            const response = await fetch(
+                `${process.env.REACT_APP_BACKEND_URL}ai_backend/automatic_investigation/investigate_activity/`,
+                {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${cookies.token}` },
+                    body: requestBody,
+                }
+            );
+            const rawData = await response.json();
+            if (rawData.code === "token_not_valid") { removeCookies("token"); return; }
+            if (response.ok && rawData.message === "Success") {
+                setSnackbarSuccessful(true);
+                setSnackbarMessage("Investigation started successfully.");
+            } else {
+                setSnackbarSuccessful(false);
+                setSnackbarMessage(rawData.error || "Failed to start investigation.");
+            }
+        } catch (error) {
+            setSnackbarSuccessful(false);
+            setSnackbarMessage("Failed to start investigation: " + (error instanceof Error ? error.message : "Unknown error"));
+        } finally {
+            setSnackbarOpen(true);
+        }
+    };
+
+    const handleInvestigate = async () => {
+        const correctedEarliestMagnitude = correctEarliestMagnitude();
+        const correctedVicinityMagnitude = correctVicinityMagnitude();
+        const correctedMaxIterations = correctMaxIterations();
+        const currentSettings = loadAutomationSettings() || {};
+        localStorage.setItem("taskLogForInvestigation", investigationLogMessage);
+        localStorage.setItem("caseAutomationSettings", JSON.stringify({
+            ...currentSettings,
+            earliestMagnitude: correctedEarliestMagnitude,
+            earliestUnit,
+            vicinityMagnitude: correctedVicinityMagnitude,
+            vicinityUnit,
+            maxIterations: correctedMaxIterations,
+            maxQueriesPerIteration: correctMaxQueriesPerIteration(),
+            enableWebSearch: { ...currentSettings.enableWebSearch, siem_investigation: webSearchEnabled },
+            additionalNotes
+        }));
+        setInvestigationModalOpen(false);
+        await investigateActivity();
+    };
+
+    const debouncedInvestigateActivity = debounce(handleInvestigate, 300);
+
+    const handleLogInvestigate = (logMessage: string, logId: string) => {
+        setInvestigationLogMessage(logMessage);
+        setInvestigationLogId(logId);
+        setInvestigationModalOpen(true);
     };
 
     const handleTaskLogDelete = async (logId: string) => {
@@ -144,8 +256,8 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
     };
 
     const handleInvestigateAndClose = (message: string, logId: string) => {
-        handleLogInvestigate(message);
         handleMenuClose(logId);
+        handleLogInvestigate(message, logId);
     };
 
     const getTaskData = async () => {
@@ -444,5 +556,40 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
                 }
             </Drawer>
         </Drawer>
+        <TaskInvestigationDialog
+            open={investigationModalOpen}
+            onClose={() => setInvestigationModalOpen(false)}
+            webSearchEnabled={webSearchEnabled}
+            setWebSearchEnabled={setWebSearchEnabled}
+            earliestMagnitude={earliestMagnitude}
+            setEarliestMagnitude={setEarliestMagnitude}
+            earliestUnit={earliestUnit}
+            setEarliestUnit={setEarliestUnit}
+            vicinityMagnitude={vicinityMagnitude}
+            setVicinityMagnitude={setVicinityMagnitude}
+            vicinityUnit={vicinityUnit}
+            setVicinityUnit={setVicinityUnit}
+            maxIterations={maxIterations}
+            setMaxIterations={setMaxIterations}
+            maxQueriesPerIteration={maxQueriesPerIteration}
+            setMaxQueriesPerIteration={setMaxQueriesPerIteration}
+            additionalNotes={additionalNotes}
+            setAdditionalNotes={setAdditionalNotes}
+            correctEarliestMagnitude={correctEarliestMagnitude}
+            correctVicinityMagnitude={correctVicinityMagnitude}
+            correctMaxIterations={correctMaxIterations}
+            correctMaxQueriesPerIteration={correctMaxQueriesPerIteration}
+            onInvestigate={debouncedInvestigateActivity}
+        />
+        <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={5000}
+            onClose={() => setSnackbarOpen(false)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+            <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSuccessful ? "success" : "error"} variant="filled" sx={{ width: "100%", color: "primary.main" }}>
+                {snackbarMessage}
+            </Alert>
+        </Snackbar>
     </>
 }

@@ -12,12 +12,7 @@ import {
 } from '@mui/material';
 
 import { SOAR_CHOICES } from '../../../constants/platform-choices';
-import { CallbackFunction } from '../../../types/types';
-
-interface NewSOARInfoDialogProps {
-    onClose: CallbackFunction;
-    onCreate: CallbackFunction;
-}
+import { NewSOARInfoDialogProps } from '../../../types/types';
 
 const isValidURL = (url: string): boolean => {
     const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;

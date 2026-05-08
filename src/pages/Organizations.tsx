@@ -83,7 +83,7 @@ export const Organizations = () => {
             <Box sx={{ display: "flex" }}>
                 <HorizontalNavbar names={["Organizations"]} routes={["/organizations"]} />
                 <VerticalNavbar />
-                <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 5.5 }}>
+                <Box component="main" sx={{ flexGrow: 1, p: { xs: 1, sm: 2 }, mt: { xs: 5, sm: 5.5 } }}>
                     {targetSOAR ? (
                         errorMessage ? (
                             <Typography variant="body1">{errorMessage}</Typography>
@@ -103,7 +103,6 @@ export const Organizations = () => {
                                             <ListItem
                                                 key={org.id}
                                                 sx={{ 
-                                                    display: "block",
                                                     cursor: 'pointer',
                                                     '&:hover': {
                                                         backgroundColor: 'action.hover'
@@ -115,28 +114,14 @@ export const Organizations = () => {
                                                     <CorporateFareIcon />
                                                 </ListItemIcon>
                                                 <ListItemText
-                                                    sx={{ display: "inline-block", verticalAlign: "middle" }}
-                                                    primaryTypographyProps={{
-                                                        sx: {
-                                                            width: "calc(40vw - 150px)",
-                                                            overflow: 'hidden',
-                                                            textOverflow: 'ellipsis',
-                                                            whiteSpace: 'nowrap',
-                                                        },
-                                                    }}
+                                                    sx={{ flex: '1 1 0', minWidth: 0 }}
+                                                    primaryTypographyProps={{ noWrap: true }}
                                                     primary={org.name}
                                                     secondary={`ID: ${org.id}`}
                                                 />
                                                 <ListItemText
-                                                    sx={{ display: "inline-block", verticalAlign: "middle", marginLeft: 10 }}
-                                                    secondaryTypographyProps={{
-                                                        sx: {
-                                                            width: "calc(60vw - 150px)",
-                                                            overflow: 'hidden',
-                                                            textOverflow: 'ellipsis',
-                                                            whiteSpace: 'nowrap',
-                                                        },
-                                                    }}
+                                                    sx={{ flex: '0 0 40%', minWidth: 0, display: { xs: 'none', md: 'block' }, ml: 2 }}
+                                                    secondaryTypographyProps={{ noWrap: true }}
                                                     secondary={`Description: ${org.description}`}
                                                 />
                                             </ListItem>
