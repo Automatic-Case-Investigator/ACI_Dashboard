@@ -326,6 +326,87 @@ export interface WebSearchEnableState {
     siem_investigation: boolean;
 }
 
+export interface AutomationSettings {
+    enableWebSearch: WebSearchEnableState;
+    earliestMagnitude: number;
+    earliestUnit: string;
+    vicinityMagnitude: number;
+    vicinityUnit: string;
+    maxIterations: number;
+    maxQueriesPerIteration: number;
+    additionalNotes: string;
+}
+
+export interface AutomationSettingsResponse {
+    code?: string;
+    message?: string;
+    error?: string;
+    settings?: AutomationSettings;
+    updated_at?: string;
+}
+
+export interface AutomationSettingsApiResult {
+    ok: boolean;
+    data: AutomationSettingsResponse;
+}
+
+// ─── Auto Workflow Settings ────────────────────────────────────────────────
+
+export interface WorkflowActionSettings {
+    enabled: boolean;
+    use_web_search: boolean;
+    additional_notes: string;
+}
+
+export interface WorkflowInvestigationSettings extends WorkflowActionSettings {
+    earliest_magnitude: number;
+    earliest_unit: string;
+    vicinity_magnitude: number;
+    vicinity_unit: string;
+    max_iterations: number;
+    max_queries_per_iteration: number;
+}
+
+export interface WorkflowReportSettings extends WorkflowActionSettings {
+    report_template_id: string;
+}
+
+export interface WorkflowSettings {
+    enabled: boolean;
+    max_concurrent_workflows: number;
+    soar_id: string;
+    webhook: {
+        bearer_key: string;
+    };
+    task_generation: WorkflowActionSettings;
+    activity_generation: WorkflowActionSettings;
+    investigation: WorkflowInvestigationSettings;
+    report_generation: WorkflowReportSettings;
+}
+
+export interface SOAROption {
+    id: number;
+    name: string;
+}
+
+export interface SOARInfoResponse {
+    code?: string;
+    error?: string;
+    message?: SOAROption[];
+}
+
+export interface WorkflowSettingsResponse {
+    code?: string;
+    error?: string;
+    settings?: WorkflowSettings;
+}
+
+export interface WorkflowSettingsApiResult {
+    ok: boolean;
+    status: number;
+    data: WorkflowSettingsResponse;
+}
+
 export interface CaseAutomationsTabProps {
     enableWebSearch: WebSearchEnableState;
     setEnableWebSearch: (value: WebSearchEnableState) => void;

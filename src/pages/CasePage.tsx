@@ -1,6 +1,8 @@
 import { CaseData, DocumentData, ObservableData, TargetSIEMInfo, TargetSOARInfo, TaskData, WebSearchEnableState } from "../types/types";
 import { CaseAutomationsTab } from "../components/case_page/automations/Automations";
 import { SIEMQueryAgent } from "../components/case_page/siem_query_agent/SIEMQueryAgent";
+    import { AutomationSettings } from "../types/types";
+    import { fetchAutomationSettings, saveAutomationSettings, isTokenNotValid } from "../components/case_page/automations/automationSettingsApi";
 import { ObservableList } from "../components/case_page/observable_list/ObservableList";
 import { DocumentList } from "../components/case_page/document_list/DocumentList";
 import { Box, IconButton, Snackbar, Tooltip, Typography } from "@mui/material";
@@ -54,11 +56,14 @@ export const CasePage = () => {
         }
     });
     const navigate = useNavigate();
-    const automationSettingsKey = 'caseAutomationSettings';
-    // Helper function to load automation settings from localStorage
-    const loadAutomationSettings = () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
+    const [_loadingSettings, setLoadingSettings] = useState<boolean>(false);
+    const [_savingSettings, setSavingSettings] = useState<boolean>(false);
+    
+    // Helper function to load automation settings from localStorage (fallback)
+    const loadAutomationSettingsFromStorage = () => {
         try {
-            const saved = localStorage.getItem(automationSettingsKey);
+            const saved = localStorage.getItem('caseAutomationSettings');
             if (saved) {
                 return JSON.parse(saved);
             }
@@ -67,7 +72,7 @@ export const CasePage = () => {
         }
         return null;
     };
-    const savedSettings = loadAutomationSettings();
+    const savedSettings = loadAutomationSettingsFromStorage();
     // web search states
     const [enableWebSearch, setEnableWebSearch] = useState<WebSearchEnableState>(
         savedSettings?.enableWebSearch ?? {
@@ -89,6 +94,101 @@ export const CasePage = () => {
     const [selectedReportTemplateId, setSelectedReportTemplateId] = useState<string>("");
     // component open states
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
+    
+        // Fetch automation settings from backend
+        const fetchSettingsFromBackend = async () => {
+            if (!targetSOAR) return;
+        
+            setLoadingSettings(true);
+            try {
+                const { ok, data } = await fetchAutomationSettings(
+                    backendUrl,
+                    cookies.token,
+                    targetSOAR.id,
+                    orgId,
+                    caseId
+                );
+            
+                if (isTokenNotValid(data.code)) {
+                    removeCookies("token");
+                    return;
+                }
+            
+                if (ok && data.settings) {
+                    const settings = data.settings;
+                    setEnableWebSearch(settings.enableWebSearch);
+                    setEarliestMagnitude(settings.earliestMagnitude);
+                    setEarliestUnit(settings.earliestUnit);
+                    setVicinityMagnitude(settings.vicinityMagnitude);
+                    setVicinityUnit(settings.vicinityUnit);
+                    setMaxIterations(settings.maxIterations);
+                    setMaxQueriesPerIteration(settings.maxQueriesPerIteration);
+                    setAdditionalNotes(settings.additionalNotes);
+                    // Also update localStorage as fallback
+                    localStorage.setItem('caseAutomationSettings', JSON.stringify(settings));
+                }
+            } catch (error) {
+                console.error("Failed to fetch automation settings:", error);
+                // Silently fail, will use localStorage fallback
+            } finally {
+                setLoadingSettings(false);
+            }
+        };
+    
+        // Save automation settings to backend
+        const saveSettingsToBackend = async () => {
+            if (!targetSOAR) return;
+        
+            setSavingSettings(true);
+            try {
+                const settings: AutomationSettings = {
+                    enableWebSearch,
+                    earliestMagnitude: typeof earliestMagnitude === "number" ? earliestMagnitude : 1,
+                    earliestUnit,
+                    vicinityMagnitude: typeof vicinityMagnitude === "number" ? vicinityMagnitude : 1,
+                    vicinityUnit,
+                    maxIterations: typeof maxIterations === "number" ? maxIterations : 3,
+                    maxQueriesPerIteration: typeof maxQueriesPerIteration === "number" ? maxQueriesPerIteration : 5,
+                    additionalNotes
+                };
+            
+                const { ok, data } = await saveAutomationSettings(
+                    backendUrl,
+                    cookies.token,
+                    targetSOAR.id,
+                    orgId,
+                    caseId,
+                    settings
+                );
+            
+                if (isTokenNotValid(data.code)) {
+                    removeCookies("token");
+                    return;
+                }
+            
+                if (!ok) {
+                    console.error("Failed to save automation settings:", data.error);
+                }
+                // Always update localStorage as fallback
+                localStorage.setItem('caseAutomationSettings', JSON.stringify(settings));
+            } catch (error) {
+                console.error("Failed to save automation settings:", error);
+                // Fallback: save to localStorage
+                const settings = {
+                    enableWebSearch,
+                    earliestMagnitude,
+                    earliestUnit,
+                    vicinityMagnitude,
+                    vicinityUnit,
+                    maxIterations,
+                    maxQueriesPerIteration,
+                    additionalNotes
+                };
+                localStorage.setItem('caseAutomationSettings', JSON.stringify(settings));
+            } finally {
+                setSavingSettings(false);
+            }
+        };
     const getCaseData = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_BACKEND_URL}soar/case/?soar_id=${targetSOAR?.id}&case_id=${caseId}`,
@@ -388,23 +488,16 @@ export const CasePage = () => {
     const debouncedGenerateActivity = debounce(generateActivity, 300);
     const debouncedInvestigateTask = debounce(investigateTask, 300);
     const debouncedGenerateReport = debounce(generateReport, 300);
-    // Save automation settings to localStorage whenever any of them change
+    // Save automation settings to backend whenever any of them change
     useEffect(() => {
-        const automationSettings = {
-            enableWebSearch,
-            earliestMagnitude,
-            earliestUnit,
-            vicinityMagnitude,
-            vicinityUnit,
-            maxIterations,
-            maxQueriesPerIteration,
-            additionalNotes
-        };
-        localStorage.setItem(automationSettingsKey, JSON.stringify(automationSettings));
+        if (targetSOAR) {
+            saveSettingsToBackend();
+        }
     }, [enableWebSearch, earliestMagnitude, earliestUnit, vicinityMagnitude, vicinityUnit, maxIterations, maxQueriesPerIteration, additionalNotes]);
     useEffect(() => {
         if (!targetSOAR) return;
         refresh();
+        fetchSettingsFromBackend();
     }, [targetSOAR]);
     return (
         <>

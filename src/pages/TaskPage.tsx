@@ -4,7 +4,8 @@ import { SIEMQueryAgent } from "../components/case_page/siem_query_agent/SIEMQue
 import { HorizontalNavbar } from "../components/navbar/HorizontalNavbar";
 import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { useNavigate, useParams } from "react-router-dom";
-import { TargetSOARInfo, TaskData, TaskLogData } from "../types/types";
+import { AutomationSettings, TargetSOARInfo, TaskData, TaskLogData } from "../types/types";
+import { fetchAutomationSettings, saveAutomationSettings, isTokenNotValid } from "../components/case_page/automations/automationSettingsApi";
 import PuffLoader from "react-spinners/PuffLoader"
 import { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
@@ -48,8 +49,12 @@ export const TaskPage = () => {
     const [copySuccessId, setCopySuccessId] = useState<string | null>(null);
     // State for action menu
     const [menuAnchorEl, setMenuAnchorEl] = useState<{ [key: string]: HTMLButtonElement | null }>({});
-    // Helper function to load automation settings from localStorage (shared with CasePage)
-    const loadAutomationSettings = () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
+    const [_loadingSettings, setLoadingSettings] = useState<boolean>(false);
+    const [_savingSettings, setSavingSettings] = useState<boolean>(false);
+    
+    // Helper function to load automation settings from localStorage (fallback)
+    const loadAutomationSettingsFromStorage = () => {
         try {
             const saved = localStorage.getItem("caseAutomationSettings");
             if (saved) {
@@ -60,7 +65,41 @@ export const TaskPage = () => {
         }
         return null;
     };
-    const savedSettings = loadAutomationSettings();
+    const savedSettings = loadAutomationSettingsFromStorage();
+    
+    // Save automation settings to backend
+    const saveSettingsToBackend = async (settingsToSave: AutomationSettings) => {
+        if (!targetSOAR) return;
+        
+        setSavingSettings(true);
+        try {
+            const { ok, data } = await saveAutomationSettings(
+                backendUrl,
+                cookies.token,
+                targetSOAR.id,
+                orgId || "",
+                caseId || "",
+                settingsToSave
+            );
+            
+            if (isTokenNotValid(data.code)) {
+                removeCookies("token");
+                return;
+            }
+            
+            if (!ok) {
+                console.error("Failed to save automation settings:", data.error);
+            }
+            // Always update localStorage as fallback
+            localStorage.setItem('caseAutomationSettings', JSON.stringify(settingsToSave));
+        } catch (error) {
+            console.error("Failed to save automation settings:", error);
+            // Fallback: save to localStorage
+            localStorage.setItem('caseAutomationSettings', JSON.stringify(settingsToSave));
+        } finally {
+            setSavingSettings(false);
+        }
+    };
     // State for investigation modal - initialized from shared localStorage
     const [investigationModalOpen, setInvestigationModalOpen] = useState<boolean>(false);
     const [investigationLogMessage, setInvestigationLogMessage] = useState<string>("");
@@ -165,37 +204,27 @@ export const TaskPage = () => {
         const correctedEarliestMagnitude = correctEarliestMagnitude();
         const correctedVicinityMagnitude = correctVicinityMagnitude();
         const correctedMaxIterations = correctMaxIterations();
-        // Update the shared automation settings in localStorage
-        const currentSettings = loadAutomationSettings() || {};
-        const updatedSettings = {
-            ...currentSettings,
+        // Update the shared automation settings
+        const updatedSettings: AutomationSettings = {
+            enableWebSearch: {
+                task_generation: false,
+                activity_generation: false,
+                siem_investigation: webSearchEnabled
+            },
             earliestMagnitude: correctedEarliestMagnitude,
             earliestUnit: earliestUnit,
             vicinityMagnitude: correctedVicinityMagnitude,
             vicinityUnit: vicinityUnit,
             maxIterations: correctedMaxIterations,
-            enableWebSearch: {
-                ...currentSettings.enableWebSearch,
-                siem_investigation: webSearchEnabled
-            }
+            maxQueriesPerIteration: correctMaxQueriesPerIteration(),
+            additionalNotes: additionalNotes
         };
-        localStorage.setItem("caseAutomationSettings", JSON.stringify(updatedSettings));
+        
+        // Save to backend
+        await saveSettingsToBackend(updatedSettings);
+        
         // Store the investigation context in localStorage for SIEMQueryAgent use
         localStorage.setItem("taskLogForInvestigation", investigationLogMessage);
-        localStorage.setItem("caseAutomationSettings", JSON.stringify({
-            ...loadAutomationSettings(),
-            earliestMagnitude: correctedEarliestMagnitude,
-            earliestUnit,
-            vicinityMagnitude: correctedVicinityMagnitude,
-            vicinityUnit,
-            maxIterations: correctedMaxIterations,
-            maxQueriesPerIteration: correctMaxQueriesPerIteration(),
-            enableWebSearch: {
-                ...loadAutomationSettings()?.enableWebSearch,
-                siem_investigation: webSearchEnabled
-            },
-            additionalNotes
-        }));
         setInvestigationModalOpen(false);
         await investigateActivity();
     };
@@ -333,6 +362,45 @@ export const TaskPage = () => {
         }
         getTaskData();
         getTaskLogs();
+    }, [targetSOAR]);
+    
+    useEffect(() => {
+        // Fetch initial settings from backend when component loads
+        if (!targetSOAR) return;
+        const fetchInitialSettings = async () => {
+            setLoadingSettings(true);
+            try {
+                const { ok, data } = await fetchAutomationSettings(
+                    backendUrl,
+                    cookies.token,
+                    targetSOAR.id,
+                    orgId || "",
+                    caseId || ""
+                );
+                
+                if (isTokenNotValid(data.code)) {
+                    removeCookies("token");
+                    return;
+                }
+                
+                if (ok && data.settings) {
+                    const settings = data.settings;
+                    setWebSearchEnabled(settings.enableWebSearch.siem_investigation);
+                    setEarliestMagnitude(settings.earliestMagnitude);
+                    setEarliestUnit(settings.earliestUnit);
+                    setVicinityMagnitude(settings.vicinityMagnitude);
+                    setVicinityUnit(settings.vicinityUnit);
+                    setMaxIterations(settings.maxIterations);
+                    setMaxQueriesPerIteration(settings.maxQueriesPerIteration);
+                    setAdditionalNotes(settings.additionalNotes);
+                }
+            } catch (error) {
+                console.error("Failed to fetch automation settings:", error);
+            } finally {
+                setLoadingSettings(false);
+            }
+        };
+        fetchInitialSettings();
     }, [targetSOAR]);
 
     useEffect(() => {

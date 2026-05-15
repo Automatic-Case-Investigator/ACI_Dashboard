@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { TargetSOARInfo, TaskData, TaskLogData, TaskPreviewProps } from "../../../types/types";
+import { AutomationSettings, TargetSOARInfo, TaskData, TaskLogData, TaskPreviewProps } from "../../../types/types";
+import { saveAutomationSettings, isTokenNotValid } from "../automations/automationSettingsApi";
 import { Box, Button, Divider, Drawer, Paper, Typography, Collapse, IconButton, Tooltip, Menu, MenuItem, TextField, Snackbar, Alert } from "@mui/material";
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import { debounce } from 'lodash';
@@ -49,14 +50,52 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
     const [investigationLogMessage, setInvestigationLogMessage] = useState<string>("");
     const [investigationLogId, setInvestigationLogId] = useState<string>("");
 
-    const loadAutomationSettings = () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
+    const [_savingSettings, setSavingSettings] = useState<boolean>(false);
+    
+    // Helper function to load automation settings from localStorage (fallback)
+    const loadAutomationSettingsFromStorage = () => {
         try {
             const saved = localStorage.getItem("caseAutomationSettings");
             if (saved) return JSON.parse(saved);
         } catch {}
         return null;
     };
-    const savedSettings = loadAutomationSettings();
+    const savedSettings = loadAutomationSettingsFromStorage();
+    
+    // Save automation settings to backend
+    const saveSettingsToBackend = async (settingsToSave: AutomationSettings) => {
+        if (!targetSOAR) return;
+        
+        setSavingSettings(true);
+        try {
+            const { ok, data } = await saveAutomationSettings(
+                backendUrl,
+                cookies.token,
+                targetSOAR.id,
+                orgId,
+                caseId,
+                settingsToSave
+            );
+            
+            if (isTokenNotValid(data.code)) {
+                removeCookies("token");
+                return;
+            }
+            
+            if (!ok) {
+                console.error("Failed to save automation settings:", data.error);
+            }
+            // Always update localStorage as fallback
+            localStorage.setItem('caseAutomationSettings', JSON.stringify(settingsToSave));
+        } catch (error) {
+            console.error("Failed to save automation settings:", error);
+            // Fallback: save to localStorage
+            localStorage.setItem('caseAutomationSettings', JSON.stringify(settingsToSave));
+        } finally {
+            setSavingSettings(false);
+        }
+    };
     const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(savedSettings?.enableWebSearch?.siem_investigation ?? false);
     const [earliestMagnitude, setEarliestMagnitude] = useState<number | "">(savedSettings?.earliestMagnitude ?? 1);
     const [earliestUnit, setEarliestUnit] = useState<string>(savedSettings?.earliestUnit ?? "years");
@@ -145,19 +184,28 @@ export const TaskPreview: React.FC<TaskPreviewProps> = ({ open, onClose, orgId, 
         const correctedEarliestMagnitude = correctEarliestMagnitude();
         const correctedVicinityMagnitude = correctVicinityMagnitude();
         const correctedMaxIterations = correctMaxIterations();
-        const currentSettings = loadAutomationSettings() || {};
-        localStorage.setItem("taskLogForInvestigation", investigationLogMessage);
-        localStorage.setItem("caseAutomationSettings", JSON.stringify({
-            ...currentSettings,
+        
+        // Update the shared automation settings
+        const updatedSettings: AutomationSettings = {
+            enableWebSearch: {
+                task_generation: false,
+                activity_generation: false,
+                siem_investigation: webSearchEnabled
+            },
             earliestMagnitude: correctedEarliestMagnitude,
-            earliestUnit,
+            earliestUnit: earliestUnit,
             vicinityMagnitude: correctedVicinityMagnitude,
-            vicinityUnit,
+            vicinityUnit: vicinityUnit,
             maxIterations: correctedMaxIterations,
             maxQueriesPerIteration: correctMaxQueriesPerIteration(),
-            enableWebSearch: { ...currentSettings.enableWebSearch, siem_investigation: webSearchEnabled },
-            additionalNotes
-        }));
+            additionalNotes: additionalNotes
+        };
+        
+        // Save to backend
+        await saveSettingsToBackend(updatedSettings);
+        
+        // Store the investigation context in localStorage for SIEMQueryAgent use
+        localStorage.setItem("taskLogForInvestigation", investigationLogMessage);
         setInvestigationModalOpen(false);
         await investigateActivity();
     };

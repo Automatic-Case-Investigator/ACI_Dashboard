@@ -5,6 +5,7 @@ import { VerticalNavbar } from "../components/navbar/VerticalNavbar";
 import { Helmet } from "react-helmet";
 import { Box } from "@mui/material";
 import { AgentSettings } from "../components/settings/AgentSettings/AgentSettings";
+import { WorkflowSettings } from "../components/settings/WorkflowSettings/WorkflowSettings";
 
 export const Settings = () => {
     return (
@@ -21,6 +22,8 @@ export const Settings = () => {
                     <SIEMSettings />
                     <Box sx={{ m: 2 }} />
                     <AgentSettings />
+                    <Box sx={{ m: 2 }} />
+                    <WorkflowSettings />
                 </Box>
             </Box>
         </>
